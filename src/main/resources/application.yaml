@@ -1,0 +1,17 @@
+server:
+  port: ${PORT}
+
+spring:
+  application:
+    name: ${CONFIG_APPLICATION_NAME}
+  profiles:
+    active: ${PROFILE}
+  cloud:
+    config:
+      label: main
+      username: ${SecurityUserName}
+      password: ${SecurityPassword}
+  config:
+    import: optional:configserver:${ConfigServerURI}
+encrypt:
+  key: ${EncryptKey}
