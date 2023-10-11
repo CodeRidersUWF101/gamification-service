@@ -13,8 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class GamificationServiceController {
 
     @GetMapping()
-    public ResponseEntity<String> gelloGamification() {
+    public ResponseEntity<String> helloGamification() {
         return new ResponseEntity<>("Gamification Service", HttpStatus.OK);
     }
-
 }

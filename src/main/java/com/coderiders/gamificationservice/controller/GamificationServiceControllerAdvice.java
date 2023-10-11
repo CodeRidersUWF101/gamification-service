@@ -1,5 +1,6 @@
 package com.coderiders.gamificationservice.controller;
 
+import com.coderiders.gamificationservice.exception.BadRequestException;
 import com.coderiders.gamificationservice.exception.GamificationErrorResponse;
 import com.coderiders.gamificationservice.exception.GamificationException;
 import lombok.extern.slf4j.Slf4j;
@@ -14,8 +15,21 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Slf4j
 public class GamificationServiceControllerAdvice {
+
+    @ExceptionHandler(BadRequestException.class)
+    private ResponseEntity<GamificationErrorResponse> badRequestExceptionHandler(GamificationException ex) {
+        GamificationErrorResponse errorResponse = new GamificationErrorResponse();
+
+        errorResponse.setErrorCode(HttpStatus.BAD_REQUEST.value());
+        errorResponse.setErrorId(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        errorResponse.setErrorMessage(ex.getMessage());
+
+        logException(ex, "badRequestExceptionHandler");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(GamificationException.class)
-    private ResponseEntity<GamificationErrorResponse> recommendationExceptionHandler(GamificationException ex) {
+    private ResponseEntity<GamificationErrorResponse> gamificationExceptionHandler(GamificationException ex) {
         GamificationErrorResponse errorResponse = new GamificationErrorResponse();
 
         errorResponse.setErrorCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
