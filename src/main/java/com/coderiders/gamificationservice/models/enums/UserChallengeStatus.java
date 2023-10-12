@@ -16,7 +16,7 @@ public enum UserChallengeStatus {
         this.name = name;
     }
 
-    public UserChallengeStatus getChallengeStatusByName(String name) {
+    public static UserChallengeStatus getChallengeStatusByName(String name) {
         return switch (name) {
           case "STARTED" -> STARTED;
           case "COMPLETED" -> COMPLETED;

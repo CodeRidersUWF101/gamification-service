@@ -1,11 +1,13 @@
 package com.coderiders.gamificationservice.repository;
 
 import com.coderiders.gamificationservice.models.db.Badges;
+import com.coderiders.gamificationservice.models.db.PointsSystem;
 import com.coderiders.gamificationservice.models.db.ReadingChallenges;
 import com.coderiders.gamificationservice.models.enums.BadgeType;
 import com.coderiders.gamificationservice.models.enums.ChallengeType;
+import com.coderiders.gamificationservice.models.enums.ElementType;
 import com.coderiders.gamificationservice.models.enums.Tiers;
-import com.coderiders.gamificationservice.utilities.Queries;
+import com.coderiders.gamificationservice.utilities.AdminQueries;
 import com.coderiders.gamificationservice.utilities.QueryParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
@@ -23,30 +25,47 @@ public class AdminRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     public List<Badges> getAllBadges() {
-        return jdbcTemplate.query(Queries.ALL_BADGES, badgesMapper());
+        return jdbcTemplate.query(AdminQueries.ALL_BADGES, badgesMapper());
     }
 
     public List<Badges> getAllBadgesByType(BadgeType type) {
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue(QueryParam.TYPE.getName(), type.getName());
-        return jdbcTemplate.query(Queries.BADGES_BY_TYPE, params, badgesMapper());
+        params.addValue(QueryParam.FIRST.getName(), type.getName());
+        return jdbcTemplate.query(AdminQueries.BADGES_BY_TYPE, params, badgesMapper());
     }
 
     public List<Badges> getAllBadgesByTier(Tiers tier) {
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue(QueryParam.TIER.getName(), tier.getName());
-        return jdbcTemplate.query(Queries.BADGES_BY_TIER, params, badgesMapper());
+        params.addValue(QueryParam.FIRST.getName(), tier.getName());
+        return jdbcTemplate.query(AdminQueries.BADGES_BY_TIER, params, badgesMapper());
     }
 
     public Badges getBadgeById(long id) {
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue(QueryParam.ID.getName(), id);
-        return jdbcTemplate.queryForObject(Queries.BADGES_BY_ID, params, badgesMapper());
+        params.addValue(QueryParam.FIRST.getName(), id);
+        return jdbcTemplate.queryForObject(AdminQueries.BADGES_BY_ID, params, badgesMapper());
+    }
+
+    public List<ReadingChallenges> getAllChallenges() {
+        return jdbcTemplate.query(AdminQueries.ALL_CHALLENGES, challengesRowMapper());
     }
 
     public List<ReadingChallenges> getAllChallengesByTime(boolean isLimitedTime) {
-        String sql = isLimitedTime ? Queries.LIMITED_TIME_CHALLENGES : Queries.PERMANENT_CHALLENGES;
+        String sql = isLimitedTime ? AdminQueries.LIMITED_TIME_CHALLENGES : AdminQueries.PERMANENT_CHALLENGES;
         return jdbcTemplate.query(sql, challengesRowMapper());
+    }
+
+    public List<PointsSystem> getEntirePointsSystem() {
+        return jdbcTemplate.query(AdminQueries.ALL_POINTS, pointsSystemRowMapper());
+    }
+
+    private RowMapper<PointsSystem> pointsSystemRowMapper() {
+        return ((rs, rowNum) -> PointsSystem.builder()
+                .id(rs.getLong("id"))
+                .elementType(ElementType.getElementTypeByName(rs.getString("element_type")))
+                .tierLevel(Tiers.getTiersByName(rs.getString("tier_level")))
+                .pointsAwarded(rs.getInt("points_awarded"))
+                .build());
     }
 
     private RowMapper<ReadingChallenges> challengesRowMapper() {

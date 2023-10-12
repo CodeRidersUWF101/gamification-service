@@ -4,10 +4,10 @@ import lombok.Getter;
 
 @Getter
 public enum QueryParam {
-    TYPE("type"),
-    TIER("qTier"),
-    NULL("NULL"),
-    ID("qID");
+    FIRST("first"),
+    SECOND("second"),
+    THIRD("third");
+
 
     private final String name;
 
