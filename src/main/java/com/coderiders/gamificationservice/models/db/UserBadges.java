@@ -1,19 +1,17 @@
 package com.coderiders.gamificationservice.models.db;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserBadges {
     private long id;
     private String clerkId;
     private int BadgeId;
-    private Timestamp dateEarned;
+    private LocalDateTime dateEarned;
 }

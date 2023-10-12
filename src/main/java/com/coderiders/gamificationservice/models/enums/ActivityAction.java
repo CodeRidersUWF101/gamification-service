@@ -13,7 +13,8 @@ public enum ActivityAction {
     FAILED_CHALLENGE("FAILED_CHALLENGE"),
     ABANDONED_CHALLENGE("ABANDONED_CHALLENGE"),
     EARNED_BADGE("EARNED_BADGE"),
-    EARNED_POINTS("EARNED_POINTS");
+    EARNED_POINTS("EARNED_POINTS"),
+    READ("READ_PAGES");
 
     private final String name;
 
@@ -33,6 +34,7 @@ public enum ActivityAction {
             case "ABANDONED_CHALLENGE" -> ABANDONED_CHALLENGE;
             case "EARNED_BADGE" -> EARNED_BADGE;
             case "EARNED_POINTS" -> EARNED_POINTS;
+            case "READ_PAGES" -> READ;
             default -> throw new IllegalArgumentException("Unknown ActivityAction: " + name);
         };
     }

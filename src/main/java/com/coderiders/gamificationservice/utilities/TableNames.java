@@ -16,7 +16,8 @@ public enum TableNames {
     USER_BADGES("userbadges"),
 
     READING_LOGS("readinglogs"),
-    USER_ACTIVITY_LOG("useractivitylog");
+    USER_ACTIVITY_LOG("useractivitylog"),
+    USER_TOTAL_POINTS("UserTotalPoints");
 
     private final String name;
 

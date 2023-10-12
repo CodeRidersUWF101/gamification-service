@@ -8,7 +8,13 @@ public enum TableField {
     CLERK_ID("clerk_id"),
     ID("id"),
     START_DATE("start_date"),
-    TIER("tier");
+    TIER("tier"),
+    DATE("date"),
+    USER_STATS("get_user_statistics"),
+    USER_TOTAL_POINTS("UserTotalPoints"),
+    PAGES_READ("pages_read"),
+    BOOK_ID("book_id"),
+    TOTAL_POINTS("TotalPoints");
 
     private final String name;
 

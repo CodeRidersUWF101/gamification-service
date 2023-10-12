@@ -3,6 +3,7 @@ package com.coderiders.gamificationservice.services.Impl;
 import com.coderiders.gamificationservice.models.db.Badges;
 import com.coderiders.gamificationservice.models.db.ReadingChallenges;
 import com.coderiders.gamificationservice.models.enums.BadgeType;
+import com.coderiders.gamificationservice.models.enums.ChallengeType;
 import com.coderiders.gamificationservice.models.enums.Tiers;
 import com.coderiders.gamificationservice.repository.AdminRepository;
 import com.coderiders.gamificationservice.services.AdminService;
@@ -13,7 +14,9 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Deprecated
 public class AdminServiceImpl implements AdminService {
+
 
     private final AdminRepository adminRepository;
 
@@ -45,5 +48,10 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<ReadingChallenges> getAllChallengesByTime(boolean isLimitedTime) {
         return adminRepository.getAllChallengesByTime(isLimitedTime);
+    }
+
+    @Override
+    public List<ReadingChallenges> getAllChallengesByType(ChallengeType challenges) {
+        return null;
     }
 }
