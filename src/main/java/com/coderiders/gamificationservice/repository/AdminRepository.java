@@ -3,6 +3,7 @@ package com.coderiders.gamificationservice.repository;
 import com.coderiders.gamificationservice.models.db.Badges;
 import com.coderiders.gamificationservice.models.db.PointsSystem;
 import com.coderiders.gamificationservice.models.db.ReadingChallenges;
+import com.coderiders.gamificationservice.models.dto.TiersThresholdsDTO;
 import com.coderiders.gamificationservice.models.enums.BadgeType;
 import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
 import com.coderiders.gamificationservice.models.enums.ElementType;
@@ -15,6 +16,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Array;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -56,17 +59,31 @@ public class AdminRepository {
     }
 
     public List<PointsSystem> getEntirePointsSystem() {
-        return jdbcTemplate.query(AdminQueries.ALL_POINTS, pointsSystemRowMapper());
-    }
-
-    private RowMapper<PointsSystem> pointsSystemRowMapper() {
-        return ((rs, rowNum) -> PointsSystem.builder()
+        return jdbcTemplate.query(AdminQueries.ALL_POINTS, (rs, rowNum) ->
+                PointsSystem.builder()
                 .id(rs.getLong("id"))
                 .elementType(ElementType.getElementTypeByName(rs.getString("element_type")))
                 .tier(rs.getShort("tier"))
                 .pointsAwarded(rs.getInt("points_awarded"))
                 .build());
     }
+
+    public List<TiersThresholdsDTO> getAllTiersAndThresholds() {
+        return jdbcTemplate.query(AdminQueries.ALL_TIERS_AND_THRESHOLDS, (rs, rowNum) -> {
+            Array sqlArray = rs.getArray("all_thresholds");
+            Integer[] thresholds = (Integer[])sqlArray.getArray();
+            return new TiersThresholdsDTO(
+                    BadgeType.getBadgeTypeByName(rs.getString("badge_type")),
+                    rs.getInt("lowest_tier"),
+                    rs.getInt("lowest_threshold"),
+                    rs.getInt("highest_tier"),
+                    rs.getInt("highest_threshold"),
+                    Arrays.stream(thresholds).mapToInt(Integer::intValue).toArray()
+            );
+        });
+    }
+
+
 
     private RowMapper<ReadingChallenges> challengesRowMapper() {
         return (rs, rowNum) -> ReadingChallenges.builder()
