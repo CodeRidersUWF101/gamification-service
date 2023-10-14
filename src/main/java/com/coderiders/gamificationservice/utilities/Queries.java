@@ -12,7 +12,7 @@ public class Queries {
                 ps.points_awarded
             FROM UserBadges ub
             JOIN Badges b ON b.id = ub.badge_id
-            JOIN PointsSystem ps ON ps.element_type = 'Badge' AND ps.tier_level = b.tier
+            JOIN PointsSystem ps ON ps.element_type = 'Badge' AND ps.tier = b.tier
             WHERE clerk_id = :first
             """;
 

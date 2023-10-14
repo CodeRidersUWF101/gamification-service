@@ -4,11 +4,11 @@ import com.coderiders.gamificationservice.models.db.Badges;
 import com.coderiders.gamificationservice.models.db.PointsSystem;
 import com.coderiders.gamificationservice.models.db.ReadingChallenges;
 import com.coderiders.gamificationservice.models.enums.BadgeType;
-import com.coderiders.gamificationservice.models.enums.ChallengeType;
+import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
 import com.coderiders.gamificationservice.models.enums.ElementType;
-import com.coderiders.gamificationservice.models.enums.Tiers;
 import com.coderiders.gamificationservice.utilities.AdminQueries;
 import com.coderiders.gamificationservice.utilities.QueryParam;
+import com.coderiders.gamificationservice.utilities.Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -34,9 +34,9 @@ public class AdminRepository {
         return jdbcTemplate.query(AdminQueries.BADGES_BY_TYPE, params, badgesMapper());
     }
 
-    public List<Badges> getAllBadgesByTier(Tiers tier) {
+    public List<Badges> getAllBadgesByTier(short tier) {
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue(QueryParam.FIRST.getName(), tier.getName());
+        params.addValue(QueryParam.FIRST.getName(), tier);
         return jdbcTemplate.query(AdminQueries.BADGES_BY_TIER, params, badgesMapper());
     }
 
@@ -63,7 +63,7 @@ public class AdminRepository {
         return ((rs, rowNum) -> PointsSystem.builder()
                 .id(rs.getLong("id"))
                 .elementType(ElementType.getElementTypeByName(rs.getString("element_type")))
-                .tierLevel(Tiers.getTiersByName(rs.getString("tier_level")))
+                .tier(rs.getShort("tier"))
                 .pointsAwarded(rs.getInt("points_awarded"))
                 .build());
     }
@@ -73,9 +73,11 @@ public class AdminRepository {
                 .id(rs.getLong("id"))
                 .name(rs.getString("name"))
                 .description(rs.getString("description"))
-                .type(ChallengeType.getChallengeTypeByName(rs.getString("type")))
-                .startDate(rs.getTimestamp("start_date"))
-                .endDate(rs.getTimestamp("end_date"))
+                .frequency(ChallengeFrequency.getChallengeTypeByName(rs.getString("frequency")))
+                .type(BadgeType.getBadgeTypeByName(rs.getString("type")))
+                .threshold(rs.getInt("threshold"))
+                .startDate(Utils.convertToLocalDateTime(rs.getTimestamp("start_date")))
+                .endDate(Utils.convertToLocalDateTime(rs.getTimestamp("end_date")))
                 .pointsAwarded(rs.getInt("points_awarded"))
                 .build();
     }
@@ -87,7 +89,7 @@ public class AdminRepository {
                 .description(rs.getString("description"))
                 .type(BadgeType.getBadgeTypeByName(rs.getString("type")))
                 .threshold(rs.getInt("threshold"))
-                .tier(Tiers.getTiersByName(rs.getString("tier")))
+                .tier(rs.getShort("tier"))
                 .imageUrl(rs.getString("image_url"))
                 .build();
     }

@@ -3,8 +3,7 @@ package com.coderiders.gamificationservice.services.Impl;
 import com.coderiders.gamificationservice.models.db.Badges;
 import com.coderiders.gamificationservice.models.db.ReadingChallenges;
 import com.coderiders.gamificationservice.models.enums.BadgeType;
-import com.coderiders.gamificationservice.models.enums.ChallengeType;
-import com.coderiders.gamificationservice.models.enums.Tiers;
+import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
 import com.coderiders.gamificationservice.repository.AdminRepository;
 import com.coderiders.gamificationservice.services.AdminService;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +30,8 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<Badges> getAllBadgesByTier(Tiers tier) {
+    public List<Badges> getAllBadgesByTier(short tier) {
+        // TODO: Add check to make sure between 1 && MAX_TIER
         return adminRepository.getAllBadgesByTier(tier);
     }
 
@@ -51,7 +51,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<ReadingChallenges> getAllChallengesByType(ChallengeType challenges) {
+    public List<ReadingChallenges> getAllChallengesByType(ChallengeFrequency challenges) {
         return null;
     }
 }

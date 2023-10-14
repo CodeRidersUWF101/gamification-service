@@ -8,10 +8,10 @@ import com.coderiders.gamificationservice.models.dto.UserActivityDTO;
 import com.coderiders.gamificationservice.models.dto.UserPointsDTO;
 import com.coderiders.gamificationservice.models.enums.ActivityAction;
 import com.coderiders.gamificationservice.models.enums.BadgeType;
-import com.coderiders.gamificationservice.models.enums.Tiers;
 import com.coderiders.gamificationservice.models.enums.UserChallengeStatus;
 import com.coderiders.gamificationservice.models.requests.SavePages;
 import com.coderiders.gamificationservice.services.AdminStore;
+import com.coderiders.gamificationservice.utilities.ConsoleFormatter;
 import com.coderiders.gamificationservice.utilities.Queries;
 import com.coderiders.gamificationservice.utilities.QueryParam;
 import com.coderiders.gamificationservice.utilities.Utils;
@@ -23,6 +23,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.coderiders.gamificationservice.utilities.ConsoleFormatter.printColored;
 
 
 @Repository
@@ -82,23 +84,10 @@ public class UserRepository {
                         rs.getString("description"),
                         rs.getInt("threshold"),
                         BadgeType.getBadgeTypeByName(rs.getString("type")),
-                        Tiers.getTiersByName(rs.getString("tier")),
-                        Tiers.getTiersByName(rs.getString("tier")).getValue(),
+                        (rs.getShort("tier")),
                         rs.getString("image_url"),
                         rs.getInt("points_awarded")));
     }
-
-//    public List<UserBadges> getUserBadges(String clerkId) {
-//        MapSqlParameterSource params = new MapSqlParameterSource();
-//        params.addValue(QueryParam.FIRST.getName(), clerkId);
-//        return jdbcTemplate.query(Queries.getAllUserBadges, params, (rs, rowNum) ->
-//                UserBadges.builder()
-//                        .id(rs.getLong("id"))
-//                        .clerkId(rs.getString("clerk_id"))
-//                        .BadgeId(rs.getInt("badge_id"))
-//                        .dateEarned(Utils.convertToLocalDateTime(rs.getTimestamp("date_earned")))
-//                        .build());
-//    }
 
     public List<UserChallenges> getUserChallenges(String clerkId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
@@ -124,7 +113,7 @@ public class UserRepository {
             parameters.add(params);
         }
 
-        badgesToAdd.forEach(System.out::println);
+        badgesToAdd.forEach(item -> printColored("addBadgesToUser: " + item, ConsoleFormatter.Color.GREEN, true));
         return jdbcTemplate.batchUpdate(Queries.saveUserBadges, parameters.toArray(new SqlParameterSource[0]));
     }
 
@@ -158,7 +147,7 @@ public class UserRepository {
             params.addValue(QueryParam.FIRST.getName(), dto.clerkId());
             params.addValue(QueryParam.SECOND.getName(), dto.points());
             params.addValue(QueryParam.THIRD.getName(), dto.type().getName());
-            params.addValue(QueryParam.FOURTH.getName(), dto.tier().getName());
+            params.addValue(QueryParam.FOURTH.getName(), dto.tier());
             params.addValue(QueryParam.FIFTH.getName(), dto.elementId());
             parameters.add(params);
         }

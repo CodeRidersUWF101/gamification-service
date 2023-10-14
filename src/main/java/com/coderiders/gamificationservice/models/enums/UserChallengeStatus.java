@@ -5,10 +5,10 @@ import lombok.Getter;
 @Getter
 public enum UserChallengeStatus {
 
-    STARTED("STARTED"),
-    COMPLETED("COMPLETED"),
-    FAILED("FAILED"),
-    ABANDONED("ABANDONED");
+    STARTED("STARTED_CHALLENGE"),
+    COMPLETED("COMPLETED_CHALLENGE"),
+    FAILED("FAILED_CHALLENGE"),
+    ABANDONED("ABANDONED_CHALLENGE");
 
     private final String name;
 
@@ -18,10 +18,10 @@ public enum UserChallengeStatus {
 
     public static UserChallengeStatus getChallengeStatusByName(String name) {
         return switch (name) {
-          case "STARTED" -> STARTED;
-          case "COMPLETED" -> COMPLETED;
-          case "FAILED" -> FAILED;
-          case "ABANDONED" -> ABANDONED;
+          case "STARTED_CHALLENGE" -> STARTED;
+          case "COMPLETED_CHALLENGE" -> COMPLETED;
+          case "FAILED_CHALLENGE" -> FAILED;
+          case "ABANDONED_CHALLENGE" -> ABANDONED;
           default -> throw new IllegalArgumentException("Unknown UserChallengeStatus: " + name);
         };
     }

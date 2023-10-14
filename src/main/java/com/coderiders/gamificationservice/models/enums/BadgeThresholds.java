@@ -21,7 +21,15 @@ public enum BadgeThresholds {
     }
 
     public boolean isBetweenThreshold(int value) {
-        return min <= value && value <= max;
+        return value >= min  && value <= max;
+    }
+
+    public boolean isGreaterThanMin(int value) {
+        return value >= min;
+    }
+
+    public boolean isLessThanMax(int value) {
+        return value <= max;
     }
 
 }

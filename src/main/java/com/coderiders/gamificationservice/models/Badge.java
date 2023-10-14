@@ -1,7 +1,6 @@
 package com.coderiders.gamificationservice.models;
 
 import com.coderiders.gamificationservice.models.enums.BadgeType;
-import com.coderiders.gamificationservice.models.enums.Tiers;
 
 public record Badge (
         long id,
@@ -9,8 +8,7 @@ public record Badge (
         String description,
         int threshold,
         BadgeType type,
-        Tiers tier,
-        int tierNumber,
+        short tier,
         String imageUrl,
         int pointsAwarded
 ) {}
