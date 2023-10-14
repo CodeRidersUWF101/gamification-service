@@ -6,8 +6,9 @@ import lombok.Getter;
 public enum QueryParam {
     FIRST("first"),
     SECOND("second"),
-    THIRD("third");
-
+    THIRD("third"),
+    FOURTH("fourth"),
+    FIFTH("fifth");
 
     private final String name;
 

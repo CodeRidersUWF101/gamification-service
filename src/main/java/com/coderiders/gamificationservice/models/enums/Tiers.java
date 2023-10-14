@@ -28,5 +28,16 @@ public enum Tiers {
             default -> throw new IllegalArgumentException("Unknown Tier: " + name);
         };
     }
+
+    public static Tiers getTiersBValue(int value) {
+        return switch (value) {
+            case 1 -> TIER_1;
+            case 2 -> TIER_2;
+            case 3 -> TIER_3;
+            case 4 -> TIER_4;
+            case 5 -> TIER_5;
+            default -> throw new IllegalArgumentException("Unknown Tier: " + value);
+        };
+    }
 }
 

@@ -1,3 +1,3 @@
 package com.coderiders.gamificationservice.models.requests;
 
-public record SavePages(String clerkId, int pagesRead, String bookId) {}
+public record SavePages(String clerkId, int pagesRead, String bookId, String action) {}

@@ -16,6 +16,7 @@ public interface AdminStore {
     Map<String, Map<String, Badge>> getAllBadgesByType();
     List<Badge> getAllBadgesList();
     Badge getBadgeByTypeAndTier(BadgeType type, Tiers tier);
+    Badge getNextBadge(BadgeType type, Tiers tier);
     Badge getBadgeById(long id);
     ReadingChallenges getChallengeById(long id);
     List<ReadingChallenges> getPermanentChallenges();

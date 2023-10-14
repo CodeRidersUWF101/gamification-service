@@ -6,6 +6,7 @@ public record UserStatistics(
         int badgesEarned,
         int booksRead,
         int totalFriends,
+        int booksCollected,
         int readingStreak,
         boolean justLostStreak
 ) {}
