@@ -1,12 +1,13 @@
 package com.coderiders.gamificationservice.models.db;
 
-import com.coderiders.gamificationservice.models.enums.ChallengeType;
+import com.coderiders.gamificationservice.models.enums.BadgeType;
+import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -17,8 +18,10 @@ public class ReadingChallenges {
     private long id;
     private String name;
     private String description;
-    private ChallengeType type;
-    private Timestamp startDate;
-    private Timestamp endDate;
+    private ChallengeFrequency frequency;
+    private BadgeType type;
+    private int threshold;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
     private int pointsAwarded;
 }

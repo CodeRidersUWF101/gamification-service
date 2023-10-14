@@ -5,8 +5,7 @@ import com.coderiders.gamificationservice.models.db.Badges;
 import com.coderiders.gamificationservice.models.db.PointsSystem;
 import com.coderiders.gamificationservice.models.db.ReadingChallenges;
 import com.coderiders.gamificationservice.models.enums.BadgeType;
-import com.coderiders.gamificationservice.models.enums.ChallengeType;
-import com.coderiders.gamificationservice.models.enums.Tiers;
+import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
 import com.coderiders.gamificationservice.services.AdminStore;
 import com.coderiders.gamificationservice.utilities.Constants;
 import org.springframework.lang.NonNull;
@@ -21,7 +20,7 @@ import java.util.stream.Collectors;
 @Service
 public class AdminStoreImpl implements AdminStore {
 
-    private final Map<String, Map<String, Badge>> badgeByType = new HashMap<>();
+    private final Map<String, Map<Short, Badge>> badgeByType = new HashMap<>();
     private final Map<Long, Badge> badgeById = new HashMap<>();
     private final List<ReadingChallenges> challenges = new ArrayList<>();
 
@@ -30,14 +29,14 @@ public class AdminStoreImpl implements AdminStore {
         for (Badges badge : badges) {
             Badge currBadge = badgesToBadge(badge, pointsSystems);
             badgeByType.computeIfAbsent(badge.getType().getName(), k -> new HashMap<>())
-                    .put(badge.getTier().getName(), currBadge);
+                    .put(badge.getTier(), currBadge);
             badgeById.put(badge.getId(), currBadge);
         }
         challenges.addAll(incChallenges);
     }
 
     @Override
-    public Map<String, Map<String, Badge>> getAllBadgesByType() {
+    public Map<String, Map<Short, Badge>> getAllBadgesByType() {
         return badgeByType;
     }
 
@@ -49,14 +48,14 @@ public class AdminStoreImpl implements AdminStore {
     }
 
     @Override
-    public Badge getBadgeByTypeAndTier(BadgeType type, Tiers tier) {
-        return badgeByType.getOrDefault(type.getName(), null).get(tier.getName());
+    public Badge getBadgeByTypeAndTier(BadgeType type, short tier) {
+        return badgeByType.getOrDefault(type.getName(), null).get(tier);
     }
 
     @Override
-    public Badge getNextBadge(@NonNull BadgeType type, @NonNull Tiers tier) {
-        if (tier.getValue() > Constants.MAX_TIER) return null;
-        return getBadgeByTypeAndTier(type, Tiers.getTiersBValue(tier.getValue()));
+    public Badge getNextBadge(@NonNull BadgeType type, @NonNull short tier) {
+        if (tier > Constants.MAX_TIER) return null;
+        return getBadgeByTypeAndTier(type, tier);
     }
 
     @Override
@@ -87,9 +86,9 @@ public class AdminStoreImpl implements AdminStore {
     }
 
     @Override
-    public List<ReadingChallenges> getAllChallengesByType(ChallengeType type) {
+    public List<ReadingChallenges> getAllChallengesByType(ChallengeFrequency type) {
         return challenges.stream()
-                .filter(item -> item.getType().getName().equalsIgnoreCase(type.getName()))
+                .filter(item -> item.getFrequency().getName().equalsIgnoreCase(type.getName()))
                 .toList();
     }
 
@@ -106,7 +105,6 @@ public class AdminStoreImpl implements AdminStore {
                 badges.getThreshold(),
                 badges.getType(),
                 badges.getTier(),
-                badges.getTier().getValue(),
                 badges.getImageUrl(),
                 findPoints(badges, pointsSystem)
                 );
@@ -114,7 +112,7 @@ public class AdminStoreImpl implements AdminStore {
 
     private int findPoints(Badges badges, List<PointsSystem> pointsSystem) {
         for (PointsSystem ps : pointsSystem) {
-            if (ps.getTierLevel().equals(badges.getTier())) {
+            if (ps.getTier() == badges.getTier()) {
                 return ps.getPointsAwarded();
             }
         }

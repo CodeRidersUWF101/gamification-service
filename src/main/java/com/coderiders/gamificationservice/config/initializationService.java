@@ -17,7 +17,8 @@ public class initializationService {
 
     @PostConstruct
     public void init() {
-        adminStore.initialize(adminRepository.getAllBadges(),
+        adminStore.initialize(
+                adminRepository.getAllBadges(),
                 adminRepository.getAllChallenges(),
                 adminRepository.getEntirePointsSystem());
     }

@@ -1,7 +1,6 @@
 package com.coderiders.gamificationservice.models.db;
 
 import com.coderiders.gamificationservice.models.enums.ElementType;
-import com.coderiders.gamificationservice.models.enums.Tiers;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +18,6 @@ public class UserPoints {
     private int points;
     private Timestamp dateEarned;
     private ElementType elementType;
-    private Tiers tier;
+    private short tier;
     private int elementId;
 }

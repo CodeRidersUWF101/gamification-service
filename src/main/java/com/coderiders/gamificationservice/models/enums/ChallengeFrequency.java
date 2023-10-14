@@ -3,7 +3,7 @@ package com.coderiders.gamificationservice.models.enums;
 import lombok.Getter;
 
 @Getter
-public enum ChallengeType {
+public enum ChallengeFrequency {
 
     DAILY("Daily"),
     WEEKLY("Weekly"),
@@ -12,11 +12,11 @@ public enum ChallengeType {
 
     private final String name;
 
-    ChallengeType(String name) {
+    ChallengeFrequency(String name) {
         this.name = name;
     }
 
-    public static ChallengeType getChallengeTypeByName(String name) {
+    public static ChallengeFrequency getChallengeTypeByName(String name) {
         return switch (name) {
             case "Daily" -> DAILY;
             case "Weekly" -> WEEKLY;

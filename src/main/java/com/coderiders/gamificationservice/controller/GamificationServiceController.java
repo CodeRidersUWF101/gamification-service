@@ -5,7 +5,7 @@ import com.coderiders.gamificationservice.models.Badge;
 import com.coderiders.gamificationservice.models.db.Badges;
 import com.coderiders.gamificationservice.models.db.ReadingChallenges;
 import com.coderiders.gamificationservice.models.enums.ActivityAction;
-import com.coderiders.gamificationservice.models.enums.ChallengeType;
+import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
 import com.coderiders.gamificationservice.models.requests.SavePages;
 import com.coderiders.gamificationservice.repository.UserRepository;
 import com.coderiders.gamificationservice.services.AdminStore;
@@ -39,7 +39,7 @@ public class GamificationServiceController {
     }
 
     @GetMapping("/badges")
-    public ResponseEntity<Map<String, Map<String, Badge>>> getAllBadges() {
+    public ResponseEntity<Map<String, Map<Short, Badge>>> getAllBadges() {
         return new ResponseEntity<>(adminStore.getAllBadgesByType(), HttpStatus.OK);
     }
 
@@ -65,7 +65,7 @@ public class GamificationServiceController {
             @RequestParam(name = "isLimitedTime", required = false) Boolean isLimitedTime,
             @RequestParam(name = "type", required = false) String type) {
 
-        if (type != null) return new ResponseEntity<>(adminStore.getAllChallengesByType(ChallengeType.getChallengeTypeByName(type)), HttpStatus.OK);
+        if (type != null) return new ResponseEntity<>(adminStore.getAllChallengesByType(ChallengeFrequency.getChallengeTypeByName(type)), HttpStatus.OK);
 
         if (isLimitedTime != null) {
             return isLimitedTime
