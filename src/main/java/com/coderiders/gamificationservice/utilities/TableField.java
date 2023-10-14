@@ -14,7 +14,10 @@ public enum TableField {
     USER_TOTAL_POINTS("UserTotalPoints"),
     PAGES_READ("pages_read"),
     BOOK_ID("book_id"),
-    TOTAL_POINTS("TotalPoints");
+    TOTAL_POINTS("TotalPoints"),
+    ACTION("action"),
+    ACTION_ID("actionID"),
+    BADGE_ID("badge_id");
 
     private final String name;
 

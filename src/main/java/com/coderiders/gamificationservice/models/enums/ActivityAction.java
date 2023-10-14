@@ -2,6 +2,9 @@ package com.coderiders.gamificationservice.models.enums;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Getter
 public enum ActivityAction {
     STARTED_BOOK("STARTED_BOOK"),
@@ -39,5 +42,15 @@ public enum ActivityAction {
         };
     }
 
+    public static List<String> allActivityActions() {
+        return Arrays.stream(ActivityAction.values())
+                .map(ActivityAction::getName)
+                .toList();
+    }
+
+    public static boolean isValidActionName(String name) {
+        return Arrays.stream(ActivityAction.values())
+                .anyMatch(action -> action.getName().equals(name));
+    }
 
 }

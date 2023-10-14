@@ -16,6 +16,18 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 public class GamificationServiceControllerAdvice {
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    private ResponseEntity<GamificationErrorResponse> illegalArgumentExceptionHandler(GamificationException ex) {
+        GamificationErrorResponse errorResponse = new GamificationErrorResponse();
+
+        errorResponse.setErrorCode(HttpStatus.BAD_REQUEST.value());
+        errorResponse.setErrorId(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        errorResponse.setErrorMessage(ex.getMessage());
+
+        logException(ex, "illegalArgumentExceptionHandler");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(BadRequestException.class)
     private ResponseEntity<GamificationErrorResponse> badRequestExceptionHandler(GamificationException ex) {
         GamificationErrorResponse errorResponse = new GamificationErrorResponse();

@@ -8,6 +8,8 @@ import com.coderiders.gamificationservice.models.enums.BadgeType;
 import com.coderiders.gamificationservice.models.enums.ChallengeType;
 import com.coderiders.gamificationservice.models.enums.Tiers;
 import com.coderiders.gamificationservice.services.AdminStore;
+import com.coderiders.gamificationservice.utilities.Constants;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -49,6 +51,12 @@ public class AdminStoreImpl implements AdminStore {
     @Override
     public Badge getBadgeByTypeAndTier(BadgeType type, Tiers tier) {
         return badgeByType.getOrDefault(type.getName(), null).get(tier.getName());
+    }
+
+    @Override
+    public Badge getNextBadge(@NonNull BadgeType type, @NonNull Tiers tier) {
+        if (tier.getValue() > Constants.MAX_TIER) return null;
+        return getBadgeByTypeAndTier(type, Tiers.getTiersBValue(tier.getValue()));
     }
 
     @Override
