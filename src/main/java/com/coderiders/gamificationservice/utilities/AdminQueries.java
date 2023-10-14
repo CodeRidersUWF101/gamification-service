@@ -12,6 +12,19 @@ public class AdminQueries {
     public static final String LIMITED_TIME_CHALLENGES = getAllFromTableSingleParamIsNull(TableNames.CHALLENGES, TableField.START_DATE, false);
     public static final String PERMANENT_CHALLENGES = getAllFromTableSingleParamIsNull(TableNames.CHALLENGES, TableField.START_DATE, true);
 
+    public static final String ALL_TIERS_AND_THRESHOLDS = """
+            SELECT
+                type as badge_type,
+                MIN(tier) as lowest_tier,
+                MIN(threshold) as lowest_threshold,
+                MAX(tier) as highest_tier,
+                MAX(threshold) as highest_threshold,
+                array_agg(threshold ORDER BY threshold) as all_thresholds
+            FROM Badges
+            GROUP BY type
+            ORDER BY badge_type;
+            """;
+
 
     public static final String ALL_POINTS = getAllFromTable(TableNames.POINTS_SYSTEM);
 

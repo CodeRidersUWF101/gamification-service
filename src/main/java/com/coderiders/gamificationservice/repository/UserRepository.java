@@ -3,14 +3,12 @@ package com.coderiders.gamificationservice.repository;
 import com.coderiders.gamificationservice.models.Badge;
 import com.coderiders.gamificationservice.models.UserStatistics;
 import com.coderiders.gamificationservice.models.db.ReadingLogs;
-import com.coderiders.gamificationservice.models.db.UserChallenges;
 import com.coderiders.gamificationservice.models.dto.UserActivityDTO;
-import com.coderiders.gamificationservice.models.dto.UserPointsDTO;
+import com.coderiders.gamificationservice.models.dto.UserChallengesDTO;
 import com.coderiders.gamificationservice.models.enums.ActivityAction;
 import com.coderiders.gamificationservice.models.enums.BadgeType;
-import com.coderiders.gamificationservice.models.enums.UserChallengeStatus;
+import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
 import com.coderiders.gamificationservice.models.requests.SavePages;
-import com.coderiders.gamificationservice.services.AdminStore;
 import com.coderiders.gamificationservice.utilities.ConsoleFormatter;
 import com.coderiders.gamificationservice.utilities.Queries;
 import com.coderiders.gamificationservice.utilities.QueryParam;
@@ -32,15 +30,15 @@ import static com.coderiders.gamificationservice.utilities.ConsoleFormatter.prin
 public class UserRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
-    private final AdminStore adminStore;
 
-
-    public long saveReadingLog(SavePages pages) { // TODO: ADD ACTION TO QUERY. Defaults to READING_PAGES, Need to update for COMPLETED_BOOK or STARTED_BOOK.
+    public void saveReadingLog(SavePages pages, ActivityAction action) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(QueryParam.FIRST.getName(), pages.clerkId());
         params.addValue(QueryParam.SECOND.getName(), pages.pagesRead());
         params.addValue(QueryParam.THIRD.getName(), pages.bookId());
-        return jdbcTemplate.update(Queries.savePages, params);
+        params.addValue(QueryParam.FOURTH.getName(), action.getName());
+
+        jdbcTemplate.update(Queries.savePages, params);
     }
 
     public Integer getUserPoints(String clerkId) {
@@ -89,21 +87,24 @@ public class UserRepository {
                         rs.getInt("points_awarded")));
     }
 
-    public List<UserChallenges> getUserChallenges(String clerkId) {
+    public List<UserChallengesDTO> getUserChallenges(String clerkId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(QueryParam.FIRST.getName(), clerkId);
-        return jdbcTemplate.query(Queries.getAllUserChallenges, params, (rs, rowNum) ->
-                UserChallenges.builder()
-                        .id(rs.getLong("id"))
-                        .clerkId(rs.getString("clerk_id"))
-                        .challengeId(rs.getInt("challenge_id"))
-                        .dateStarted(Utils.convertToLocalDateTime(rs.getTimestamp("date_started")))
-                        .dateEnded(Utils.convertToLocalDateTime(rs.getTimestamp("date_ended")))
-                        .status(UserChallengeStatus.getChallengeStatusByName(rs.getString("status")))
-                        .build());
+        return jdbcTemplate.query(Queries.getUserChallengesExpanded, params, (rs, rowNum) ->
+                new UserChallengesDTO(
+                        rs.getLong("id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        ChallengeFrequency.getChallengeTypeByName(rs.getString("frequency")),
+                        BadgeType.getBadgeTypeByName(rs.getString("type")),
+                        rs.getInt("threshold"),
+                        Utils.convertToLocalDateTime(rs.getTimestamp("challengeStartDate")),
+                        Utils.convertToLocalDateTime(rs.getTimestamp("challengeEndDate")),
+                        rs.getInt("points_awarded"),
+                        Utils.convertToLocalDateTime(rs.getTimestamp("UserChallengeStartDate"))));
     }
 
-    public int[] addBadgesToUser(String clerkId, List<Badge> badgesToAdd) {
+    public void addBadgesToUser(String clerkId, List<Badge> badgesToAdd) {
         List<SqlParameterSource> parameters = new ArrayList<>();
 
         for (Badge badge : badgesToAdd) {
@@ -113,19 +114,20 @@ public class UserRepository {
             parameters.add(params);
         }
 
-        badgesToAdd.forEach(item -> printColored("addBadgesToUser: " + item, ConsoleFormatter.Color.GREEN, true));
-        return jdbcTemplate.batchUpdate(Queries.saveUserBadges, parameters.toArray(new SqlParameterSource[0]));
+        badgesToAdd.forEach(item -> printColored("addBadgesToUser: " + item, ConsoleFormatter.Color.GREEN));
+
+        jdbcTemplate.batchUpdate(Queries.saveUserBadges, parameters.toArray(new SqlParameterSource[0]));
     }
 
-    public long saveSingleUserActivity(String clerkId, ActivityAction action, Integer actionId) {
+    public void saveSingleUserActivity(String clerkId, ActivityAction action, Integer actionId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(QueryParam.FIRST.getName(), clerkId);
         params.addValue(QueryParam.SECOND.getName(), action.getName());
         params.addValue(QueryParam.THIRD.getName(), actionId);
-        return jdbcTemplate.update(Queries.saveUserActivity, params);
+        jdbcTemplate.update(Queries.saveUserActivity, params);
     }
 
-    public int[] saveManyUserActivity(List<UserActivityDTO> userActivity) {
+    public void saveManyUserActivity(List<UserActivityDTO> userActivity) {
         List<SqlParameterSource> parameters = new ArrayList<>();
 
         for (UserActivityDTO dto : userActivity) {
@@ -136,23 +138,7 @@ public class UserRepository {
             parameters.add(params);
         }
 
-        return jdbcTemplate.batchUpdate(Queries.saveUserActivity, parameters.toArray(new SqlParameterSource[0]));
-    }
-
-    public int[] saveManyUserPoints(List<UserPointsDTO> userPoints) {
-        List<SqlParameterSource> parameters = new ArrayList<>();
-
-        for (UserPointsDTO dto : userPoints) {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue(QueryParam.FIRST.getName(), dto.clerkId());
-            params.addValue(QueryParam.SECOND.getName(), dto.points());
-            params.addValue(QueryParam.THIRD.getName(), dto.type().getName());
-            params.addValue(QueryParam.FOURTH.getName(), dto.tier());
-            params.addValue(QueryParam.FIFTH.getName(), dto.elementId());
-            parameters.add(params);
-        }
-
-        return jdbcTemplate.batchUpdate(Queries.saveUserPoints, parameters.toArray(new SqlParameterSource[0]));
+       jdbcTemplate.batchUpdate(Queries.saveUserActivity, parameters.toArray(new SqlParameterSource[0]));
     }
 
 

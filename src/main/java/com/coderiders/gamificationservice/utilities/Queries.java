@@ -38,10 +38,27 @@ public class Queries {
                 (:first, :second, :third, :fourth, :fifth)
             """;
 
-    public static final String savePages = String.format("INSERT INTO %s (%s, %s, %s) VALUES (:%s, :%s, :%s)",
+    public static final String getUserChallengesExpanded = """
+            SELECT
+                c.id,
+                c.name,
+                c.description,
+                c.frequency,
+                c.type,
+                c.threshold,
+                c.start_date as challengeStartDate,
+                c.end_date as challengeEndDate,
+                c.points_awarded,
+                uc.date_started as UserChallengeStartDate
+            FROM userchallenges uc
+            JOIN readingchallenges c ON uc.challenge_id = c.id
+            WHERE clerk_id = 'user_2WAMNVez4us6P87bQk6806lokQe';
+            """;
+
+    public static final String savePages = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (:%s, :%s, :%s, :%s)",
                 TableNames.READING_LOGS.getName(),
-                TableField.CLERK_ID.getName(), TableField.PAGES_READ.getName(), TableField.BOOK_ID.getName(),
-                QueryParam.FIRST.getName(),  QueryParam.SECOND.getName(), QueryParam.THIRD.getName());
+                TableField.CLERK_ID.getName(), TableField.PAGES_READ.getName(), TableField.BOOK_ID.getName(), TableField.ACTION.getName(),
+                QueryParam.FIRST.getName(),  QueryParam.SECOND.getName(), QueryParam.THIRD.getName(), QueryParam.FOURTH.getName());
 
     public static final String getUserPoints = String.format("SELECT %s FROM %s WHERE %s = :%s",
                 TableField.TOTAL_POINTS.getName(), TableNames.USER_TOTAL_POINTS.getName(),

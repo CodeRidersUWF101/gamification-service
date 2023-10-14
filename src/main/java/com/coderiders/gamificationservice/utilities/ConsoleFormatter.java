@@ -20,6 +20,12 @@ public class ConsoleFormatter {
         BLACK, RED, GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE
     }
 
+    public static void printColored(String text, Color color) {
+        String colorCode = getColorCode(color);
+
+        log.info(colorCode + ANSI_BOLD + text + ANSI_RESET);
+    }
+
     public static void printColored(String text, Color color, boolean isBold) {
         String colorCode = getColorCode(color);
         String boldCode = isBold ? ANSI_BOLD : "";

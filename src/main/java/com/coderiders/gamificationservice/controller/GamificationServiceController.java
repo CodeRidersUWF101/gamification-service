@@ -7,6 +7,7 @@ import com.coderiders.gamificationservice.models.db.ReadingChallenges;
 import com.coderiders.gamificationservice.models.enums.ActivityAction;
 import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
 import com.coderiders.gamificationservice.models.requests.SavePages;
+import com.coderiders.gamificationservice.models.responses.Status;
 import com.coderiders.gamificationservice.repository.UserRepository;
 import com.coderiders.gamificationservice.services.AdminStore;
 import com.coderiders.gamificationservice.services.UserService;
@@ -48,13 +49,14 @@ public class GamificationServiceController {
         return  new ResponseEntity<>(new Badges(), HttpStatus.OK);
     }
 
-    // TODO: CURRENTLY SAVES PAGES
-    @PostMapping("/user/badges") // TODO: This one can save the badges the user earned
-    public ResponseEntity<String> saveBadgeByID(@RequestBody SavePages body) {
-        if (body.pagesRead() <= 0) return new ResponseEntity<>("NO PAGES TO SAVE", HttpStatus.OK);
+    @PostMapping("/pages")
+    public ResponseEntity<Status> saveBadgeByID(@RequestBody SavePages body) {
+        if (body.pagesRead() <= 0) {
+            throw new BadRequestException("No Pages to Save");
+        }
 
         if(!ActivityAction.isValidActionName(body.action())) {
-            throw new BadRequestException("Bad Action Given: " + body.action());
+            throw new BadRequestException("Bad Action: " + body.action());
         }
 
         return new ResponseEntity<>(userService.updateUserPages(body), HttpStatus.OK);

@@ -20,6 +20,7 @@ public class initializationService {
         adminStore.initialize(
                 adminRepository.getAllBadges(),
                 adminRepository.getAllChallenges(),
-                adminRepository.getEntirePointsSystem());
+                adminRepository.getEntirePointsSystem(),
+                adminRepository.getAllTiersAndThresholds());
     }
 }
