@@ -90,4 +90,9 @@ public class Queries {
                 QueryParam.FIRST.getName(), QueryParam.SECOND.getName());
     }
 
+    public static final String saveUserChallenge = String.format("INSERT INTO %s (%s, %s) VALUES (:%s, :%s)",
+            TableNames.USER_CHALLENGES.getName(),
+            TableField.CLERK_ID.getName(), TableField.CHALLENGE_ID.getName(),
+            QueryParam.FIRST.getName(), QueryParam.SECOND.getName());
+
 }
