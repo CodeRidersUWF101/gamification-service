@@ -23,14 +23,14 @@ public class ConsoleFormatter {
     public static void printColored(String text, Color color) {
         String colorCode = getColorCode(color);
 
-        log.info(colorCode + ANSI_BOLD + text + ANSI_RESET);
+        log.debug(colorCode + ANSI_BOLD + text + ANSI_RESET);
     }
 
     public static void printColored(String text, Color color, boolean isBold) {
         String colorCode = getColorCode(color);
         String boldCode = isBold ? ANSI_BOLD : "";
 
-        log.info(colorCode + boldCode + text + ANSI_RESET);
+        log.debug(colorCode + boldCode + text + ANSI_RESET);
     }
 
     private static String getColorCode(Color color) {

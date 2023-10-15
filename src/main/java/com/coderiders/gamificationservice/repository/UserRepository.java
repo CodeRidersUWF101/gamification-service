@@ -9,6 +9,7 @@ import com.coderiders.gamificationservice.models.enums.ActivityAction;
 import com.coderiders.gamificationservice.models.enums.BadgeType;
 import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
 import com.coderiders.gamificationservice.models.requests.SavePages;
+import com.coderiders.gamificationservice.models.responses.UserChallengesExtraDTO;
 import com.coderiders.gamificationservice.utilities.ConsoleFormatter;
 import com.coderiders.gamificationservice.utilities.Queries;
 import com.coderiders.gamificationservice.utilities.QueryParam;
@@ -19,6 +20,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,6 +72,7 @@ public class UserRepository {
                         .date(Utils.convertToLocalDateTime(rs.getTimestamp("date")))
                         .pagesRead(rs.getInt("pages_read"))
                         .bookId(rs.getString("book_id"))
+                        .action(ActivityAction.getActivityActionByName(rs.getString("action")))
                         .build());
     }
 
@@ -93,6 +96,7 @@ public class UserRepository {
         return jdbcTemplate.query(Queries.getUserChallengesExpanded, params, (rs, rowNum) ->
                 new UserChallengesDTO(
                         rs.getLong("id"),
+                        rs.getLong("user_challenge_id"),
                         rs.getString("name"),
                         rs.getString("description"),
                         ChallengeFrequency.getChallengeTypeByName(rs.getString("frequency")),
@@ -101,7 +105,8 @@ public class UserRepository {
                         Utils.convertToLocalDateTime(rs.getTimestamp("challengeStartDate")),
                         Utils.convertToLocalDateTime(rs.getTimestamp("challengeEndDate")),
                         rs.getInt("points_awarded"),
-                        Utils.convertToLocalDateTime(rs.getTimestamp("UserChallengeStartDate"))));
+                        Utils.convertToLocalDateTime(rs.getTimestamp("UserChallengeStartDate")),
+                        ActivityAction.getActivityActionByName(rs.getString("status"))));
     }
 
     public void addBadgesToUser(String clerkId, List<Badge> badgesToAdd) {
@@ -117,6 +122,21 @@ public class UserRepository {
         badgesToAdd.forEach(item -> printColored("addBadgesToUser: " + item, ConsoleFormatter.Color.GREEN));
 
         jdbcTemplate.batchUpdate(Queries.saveUserBadges, parameters.toArray(new SqlParameterSource[0]));
+    }
+
+    public void updateUserChallenges(List<UserChallengesExtraDTO> challenges, String clerkId) {
+        List<SqlParameterSource> parameters = new ArrayList<>();
+
+        for (UserChallengesExtraDTO challenge : challenges) {
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue(QueryParam.FIRST.getName(), challenge.getStatus().getName());
+            params.addValue(QueryParam.SECOND.getName(), LocalDateTime.now());
+            params.addValue(QueryParam.THIRD.getName(), clerkId);
+            params.addValue(QueryParam.FOURTH.getName(), challenge.getUserChallengeId());
+            parameters.add(params);
+        }
+
+        jdbcTemplate.batchUpdate(Queries.updateUserChallenges, parameters.toArray(new SqlParameterSource[0]));
     }
 
     public void saveSingleUserActivity(String clerkId, ActivityAction action, Integer actionId) {
