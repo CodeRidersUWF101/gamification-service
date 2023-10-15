@@ -141,6 +141,13 @@ public class UserRepository {
        jdbcTemplate.batchUpdate(Queries.saveUserActivity, parameters.toArray(new SqlParameterSource[0]));
     }
 
+    public void saveUserChallenge(String clerkId, int challengeId) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue(QueryParam.FIRST.getName(), clerkId);
+        params.addValue(QueryParam.SECOND.getName(), challengeId);
+        jdbcTemplate.update(Queries.saveUserChallenge, params);
+    }
+
 
 
 }

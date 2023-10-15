@@ -6,6 +6,7 @@ import com.coderiders.gamificationservice.models.db.Badges;
 import com.coderiders.gamificationservice.models.db.ReadingChallenges;
 import com.coderiders.gamificationservice.models.enums.ActivityAction;
 import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
+import com.coderiders.gamificationservice.models.requests.SaveChallenge;
 import com.coderiders.gamificationservice.models.requests.SavePages;
 import com.coderiders.gamificationservice.models.responses.Status;
 import com.coderiders.gamificationservice.repository.UserRepository;
@@ -77,5 +78,17 @@ public class GamificationServiceController {
 
 
         return new ResponseEntity<>(adminStore.getAllChallenges(), HttpStatus.OK);
+    }
+
+    @PostMapping("/gamification/challenge")
+    public ResponseEntity<String> saveChallenge(@RequestBody SaveChallenge body) {
+
+        if (body.challengeId() <= 0) return new ResponseEntity<>("INVALID ID", HttpStatus.OK);
+
+        if (body.clerkId() != null) {
+            userRepository.saveUserChallenge(body.clerkId(), body.challengeId());
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

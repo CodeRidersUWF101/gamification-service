@@ -5,6 +5,7 @@ notes.md
 
 HELP.md
 target/
+.DS_STORE
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

@@ -17,7 +17,8 @@ public enum TableField {
     TOTAL_POINTS("TotalPoints"),
     ACTION("action"),
     ACTION_ID("actionID"),
-    BADGE_ID("badge_id");
+    BADGE_ID("badge_id"),
+    CHALLENGE_ID("challenge_id");
 
     private final String name;
 
