@@ -7,6 +7,7 @@ import com.coderiders.gamificationservice.models.enums.ActivityAction;
 import com.coderiders.gamificationservice.models.enums.ElementType;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -36,7 +37,7 @@ public class Utils {
         return dateTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a"));
     }
 
-
-
-
+    public static String toReadableFormat(LocalDate dateTime) {
+        return dateTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy"));
+    }
 }
