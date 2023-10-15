@@ -1,5 +1,6 @@
 package com.coderiders.gamificationservice.models.db;
 
+import com.coderiders.gamificationservice.models.enums.ActivityAction;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,4 +18,5 @@ public class ReadingLogs {
     private LocalDateTime date;
     private int pagesRead;
     private String bookId;
+    private ActivityAction action;
 }

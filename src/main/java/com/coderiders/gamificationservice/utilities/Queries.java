@@ -40,19 +40,21 @@ public class Queries {
 
     public static final String getUserChallengesExpanded = """
             SELECT
-                c.id,
-                c.name,
-                c.description,
-                c.frequency,
-                c.type,
-                c.threshold,
-                c.start_date as challengeStartDate,
-                c.end_date as challengeEndDate,
-                c.points_awarded,
-                uc.date_started as UserChallengeStartDate
+            c.id,
+            uc.id as user_challenge_id,
+            c.name,
+            c.description,
+            c.frequency,
+            c.type,
+            c.threshold,
+            c.start_date as challengeStartDate,
+            c.end_date as challengeEndDate,
+            c.points_awarded,
+            uc.status,
+            uc.date_started as UserChallengeStartDate
             FROM userchallenges uc
             JOIN readingchallenges c ON uc.challenge_id = c.id
-            WHERE clerk_id = 'user_2WAMNVez4us6P87bQk6806lokQe';
+            WHERE clerk_id = :first AND uc.status = 'STARTED_CHALLENGE';
             """;
 
     public static final String savePages = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (:%s, :%s, :%s, :%s)",
@@ -70,6 +72,16 @@ public class Queries {
             QueryParam.FIRST.getName(), QueryParam.SECOND.getName(), QueryParam.THIRD.getName());
 
     public static final String saveUserBadges = insertByTwoFields(TableNames.USER_BADGES, TableField.CLERK_ID, TableField.BADGE_ID);
+    public static final String updateUserChallenges = """
+            UPDATE UserChallenges
+            SET
+                status = :first,
+                date_ended = :second
+            WHERE
+                clerk_id = :third
+            AND
+                id = :fourth
+            """;
 
     /*****************************************************************************************************************/
     private static String selectAllFromTableByFieldOrderAsc(TableNames table, TableField field, TableField orderByField) {
