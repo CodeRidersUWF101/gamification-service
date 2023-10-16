@@ -89,6 +89,8 @@ public class GamificationServiceController {
             userRepository.saveUserChallenge(body.clerkId(), body.challengeId());
         }
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        String successMessage = "Successfully saved a challenge for user: " + body.clerkId();
+
+        return new ResponseEntity<>(successMessage, HttpStatus.OK);
     }
 }
