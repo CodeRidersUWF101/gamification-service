@@ -93,6 +93,7 @@ public class AdminRepository {
                 .frequency(ChallengeFrequency.getChallengeTypeByName(rs.getString("frequency")))
                 .type(BadgeType.getBadgeTypeByName(rs.getString("type")))
                 .threshold(rs.getInt("threshold"))
+                .duration(rs.getInt("duration"))
                 .startDate(Utils.convertToLocalDateTime(rs.getTimestamp("start_date")))
                 .endDate(Utils.convertToLocalDateTime(rs.getTimestamp("end_date")))
                 .pointsAwarded(rs.getInt("points_awarded"))
