@@ -21,6 +21,7 @@ public class ReadingChallenges {
     private ChallengeFrequency frequency;
     private BadgeType type;
     private int threshold;
+    private int duration;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private int pointsAwarded;

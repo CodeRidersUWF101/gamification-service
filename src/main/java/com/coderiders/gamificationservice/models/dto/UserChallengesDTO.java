@@ -14,6 +14,7 @@ public record UserChallengesDTO (
         ChallengeFrequency frequency,
         BadgeType type,
         int threshold,
+        int duration,
         LocalDateTime challengeStartDate,
         LocalDateTime challengeEndDate,
         int pointsAwarded,

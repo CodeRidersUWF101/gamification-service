@@ -1,5 +1,6 @@
 package com.coderiders.gamificationservice.services.Impl;
 
+import com.coderiders.commonutils.models.records.UserBadge;
 import com.coderiders.gamificationservice.models.Badge;
 import com.coderiders.gamificationservice.models.UserStatistics;
 import com.coderiders.gamificationservice.models.db.ReadingLogs;
@@ -19,7 +20,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.coderiders.gamificationservice.utilities.ConsoleFormatter.printColored;
@@ -41,7 +44,7 @@ public class UserServiceImpl implements UserService {
         ActivityAction userAction = ActivityAction.getActivityActionByName(pages.action());
 
         // get all user badges
-        List<Badge> userBadges = userRepository.getUserBadges(pages.clerkId());
+        List<UserBadge> userBadges = userRepository.getUserBadges(pages.clerkId());
 
         // Add pages to ReadingLog
         userRepository.saveReadingLog(pages, userAction);
@@ -59,18 +62,12 @@ public class UserServiceImpl implements UserService {
 
         // Check if user is enrolled in a challenge
         List<UserChallengesDTO> userChallenges = userRepository.getUserChallenges(pages.clerkId());
-//        userChallenges.forEach(item -> printColored("UserChallenges: " + item, ConsoleFormatter.Color.GREEN));
 
         List<UserChallengesExtraDTO> updatedChallenges = determineUserChallenges(userChallenges, logs);
 
         List<UserChallengesExtraDTO> challengesToUpdate = updatedChallenges.stream()
                 .filter(item -> validChallengeSaveActions.contains(item.getStatus().getName()))
                 .toList();
-
-//        printColored("UserStatistics: " + stats, ConsoleFormatter.Color.GREEN);
-//        badgesEarned.forEach(item -> printColored("Badge: " + item, ConsoleFormatter.Color.GREEN));
-//        updatedChallenges.forEach(item -> printColored("UserChallengesExtraDTO: " + item, ConsoleFormatter.Color.GREEN));
-//        challengesToUpdate.forEach(item -> printColored("ChallengesToUpdate: " + item, ConsoleFormatter.Color.GREEN));
 
         userRepository.updateUserChallenges(challengesToUpdate, pages.clerkId());
 
@@ -82,6 +79,54 @@ public class UserServiceImpl implements UserService {
         return userRepository.getUserReadingLogs(clerkId);
     }
 
+    @Override
+    public List<UserChallengesExtraDTO> getUserChallenges(String clerkId) {
+        List<ReadingLogs> logs = getUserReadingLogs(clerkId);
+        List<UserChallengesDTO> userChallenges = userRepository.getUserChallenges(clerkId);
+
+        Map<Long, UserChallengesExtraDTO> updatedChallengesMap = determineUserChallenges(userChallenges, logs).stream()
+                .filter(item -> ActivityAction.STARTED_CHALLENGE.getName().equalsIgnoreCase(item.getStatus().getName()))
+                .collect(Collectors.toMap(UserChallengesExtraDTO::getId, Function.identity()));
+
+        Set<Long> challengeIds = updatedChallengesMap.keySet();
+
+        return adminStore.getAllChallenges().stream()
+                .map(UserChallengesExtraDTO::readingChallengeToDTO)
+                .map(chall -> challengeIds.contains(chall.getId()) ? updatedChallengesMap.get(chall.getId()) : chall)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<String, List<UserBadge>> getUserBadges(String clerkId) {
+        List<UserBadge> userBadges = userRepository.getUserBadges(clerkId);
+        List<Long> userBadgeIds = userBadges.stream().map(UserBadge::id).toList();
+
+        // TODO: Add a You have x many x until you earn the next badge! To this return.
+        //        List<ReadingLogs> logs = getUserReadingLogs(clerkId);
+        //        // Get User Statistics
+        //        UserStatistics stats = getUserStatistics(clerkId, logs);
+
+        return adminStore.getAllBadgesList().stream()
+                .map(this::badgeToUserBadge)
+                .map(item -> userBadgeIds.contains(item.id())
+                        ? userBadges.stream().filter(b -> b.id() == item.id()).findFirst().get()
+                        : item)
+                .collect(Collectors.groupingBy(badge -> badge.type().getName()));
+    }
+
+    private UserBadge badgeToUserBadge(Badge badge) {
+        return new UserBadge(
+                badge.id(),
+                badge.name(),
+                badge.description(),
+                badge.threshold(),
+                com.coderiders.commonutils.models.enums.BadgeType.getBadgeTypeByName(badge.type().getName()),
+                badge.tier(),
+                badge.imageUrl(),
+                badge.pointsAwarded(),
+                null);
+    }
+
     private Status prepareReturnStatus(List<Badge> badgesEarned, List<UserChallengesExtraDTO> challengedCompleted) {
         List<BadgeWithNext> returnBadges = badgesEarned.stream().map(this::badgeToWithNext).toList();
 
@@ -90,16 +135,14 @@ public class UserServiceImpl implements UserService {
 
     // TODO: Find a better way to do this.
     private List<UserChallengesExtraDTO> determineUserChallenges(List<UserChallengesDTO> userChallenges, List<ReadingLogs> logs) {
-        LocalDate today = LocalDate.now();
         List<UserChallengesExtraDTO> returnChallenges = new ArrayList<>();
 
         for (UserChallengesDTO challenge : userChallenges) {
-//            printColored("\nChallenge: " + challenge, ConsoleFormatter.Color.GREEN);
 
             // if startDate or EndDate is null, it's a permanent event and needs to be determined by user.
             if (challenge.challengeStartDate() == null || challenge.challengeEndDate() == null) {
                 LocalDate userChallengeStartDate = challenge.userChallengeStartDate().toLocalDate();
-                LocalDate userEndDate = userChallengeStartDate.plusDays(challenge.frequency().getLookAhead() - 1);
+                LocalDate userEndDate = userChallengeStartDate.plusDays(challenge.duration() - 1);
 
                 Predicate<ReadingLogs> filteredLogsToProperRange = log ->
                         (log.getDate().isAfter(userChallengeStartDate.atStartOfDay())
@@ -107,22 +150,7 @@ public class UserServiceImpl implements UserService {
                         && (log.getDate().isBefore(userEndDate.plusDays(1).atStartOfDay())
                                 || log.getDate().isEqual(userEndDate.atStartOfDay()));
 
-                // List of filtered Logs - Need for checking specific challenges
                 Stream<ReadingLogs> filteredLogs = logs.stream().filter(filteredLogsToProperRange);
-
-//                long totalDays = DAYS.between(userChallengeStartDate, userEndDate.plusDays(1));
-//                int daysCompleted = (int) DAYS.between(userChallengeStartDate.minusDays(1), today);
-//                int remainingDays = (int) DAYS.between(today, userEndDate);
-//                double percentageComplete = ((double) daysCompleted / totalDays) * 100;
-//
-//                printColored("Today: " + Utils.toReadableFormat(today), ConsoleFormatter.Color.BLUE);
-//                printColored("userChallengeEndDAte: " + Utils.toReadableFormat(userEndDate), ConsoleFormatter.Color.BLUE);
-//                printColored("UserChallengeStartDate: " + Utils.toReadableFormat(userChallengeStartDate), ConsoleFormatter.Color.BLUE);
-//
-//                printColored("\nTOTAL DAYS: " + totalDays, ConsoleFormatter.Color.CYAN);
-//                printColored("DAYS COMPLETED: " + daysCompleted, ConsoleFormatter.Color.CYAN);
-//                printColored("DAYS REMAINING: " + remainingDays, ConsoleFormatter.Color.CYAN);
-//                printColored("PERCENTAGE OF DAYS COMPLETED: " + percentageComplete + "%\n", ConsoleFormatter.Color.CYAN);
 
                 UserChallengesExtraDTO updatedChallenge = switch (challenge.type()) {
                     case STREAK -> checkStreak(filteredLogs, challenge);
@@ -145,7 +173,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserChallengesExtraDTO checkBooksRead(Stream<ReadingLogs> logs, UserChallengesDTO challengesDTO) {
-//        printColored("INSIDE checkBooksRead", ConsoleFormatter.Color.RED);
 
         int totalNumberOfBooksRead = (int) logs
                 .filter(item -> item.getAction().equals(ActivityAction.COMPLETED_BOOK))
@@ -155,7 +182,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserChallengesExtraDTO checkPages(Stream<ReadingLogs> logs, UserChallengesDTO challengesDTO) {
-//        printColored("INSIDE checkPages", ConsoleFormatter.Color.RED);
 
         int totalNumberOfPagesRead = logs
                 .mapToInt(ReadingLogs::getPagesRead)
@@ -170,12 +196,9 @@ public class UserServiceImpl implements UserService {
 
         LocalDate today = LocalDate.now();
         LocalDate userChallengeStartDate = challenge.userChallengeStartDate().toLocalDate();
-        LocalDate userEndDate = userChallengeStartDate.plusDays(challenge.frequency().getLookAhead() - 1);
+        LocalDate userEndDate = userChallengeStartDate.plusDays(challenge.duration() - 1);
 
         if (today.isBefore(userEndDate) || today.isEqual(userEndDate)) {
-
-//            printColored("Challenge Threshold: " + challengeThreshold, ConsoleFormatter.Color.RED);
-//            printColored("userActual: " + userActual, ConsoleFormatter.Color.RED);
 
             long totalDays = DAYS.between(userChallengeStartDate, userEndDate.plusDays(1));
             int daysCompleted = (int) DAYS.between(userChallengeStartDate.minusDays(1), today);
@@ -184,7 +207,6 @@ public class UserServiceImpl implements UserService {
 
             // User has completed the challenge.
             if (userActual >= challengeThreshold) {
-//                printColored("User has completed the challenge.", ConsoleFormatter.Color.PURPLE);
 
                 updatedChallenge.setStatus(ActivityAction.COMPLETED_CHALLENGE);
                 DateProgress dateProgress = new DateProgress(percentageComplete, daysCompleted, remainingDays);
@@ -200,9 +222,6 @@ public class UserServiceImpl implements UserService {
                         pagesToGo,
                         percentageOfChallengeComplete);
 
-//                printColored("User Challenge is still ongoing.", ConsoleFormatter.Color.YELLOW);
-//                printColored("Additional Info: " + additionalInfo, ConsoleFormatter.Color.YELLOW);
-
                 updatedChallenge.setAdditionalInfo(additionalInfo);
                 updatedChallenge.setStatus(ActivityAction.STARTED_CHALLENGE);
                 DateProgress dateProgress = new DateProgress(percentageComplete, daysCompleted, remainingDays);
@@ -212,18 +231,16 @@ public class UserServiceImpl implements UserService {
         }
 
         // User has failed the challenge.
-//        printColored("User has failed the challenge.", ConsoleFormatter.Color.RED);
         updatedChallenge.setStatus(ActivityAction.FAILED_CHALLENGE);
         return updatedChallenge;
     }
 
 
     private UserChallengesExtraDTO checkStreak(Stream<ReadingLogs> filteredLogs, UserChallengesDTO challenge) {
-//        printColored("INSIDE checkStreak", ConsoleFormatter.Color.RED);
 
         LocalDate today = LocalDate.now();
         LocalDate userChallengeStartDate = challenge.userChallengeStartDate().toLocalDate();
-        LocalDate userEndDate = userChallengeStartDate.plusDays(challenge.frequency().getLookAhead() - 1);
+        LocalDate userEndDate = userChallengeStartDate.plusDays(challenge.duration() - 1);
 
         UserChallengesExtraDTO updatedChallenge = UserChallengesExtraDTO.userChallengesToDTO(challenge);
 
@@ -247,7 +264,6 @@ public class UserServiceImpl implements UserService {
 
         if (hasLogForEachDay) {  // At least one log for exists for each day exists
             if (today.isAfter(userEndDate) || today.isEqual(userEndDate)) { // User has completed the challenge.
-//                printColored("User has completed the challenge.", ConsoleFormatter.Color.PURPLE);
                 updatedChallenge.setStatus(ActivityAction.COMPLETED_CHALLENGE);
 
             } else { // User has not failed but is not over yet.
@@ -255,9 +271,6 @@ public class UserServiceImpl implements UserService {
                         daysCompleted,
                         remainingDays,
                         percentageComplete);
-
-//                printColored("User Challenge is still ongoing.", ConsoleFormatter.Color.YELLOW);
-//                printColored("Additional Info: " + additionalInfo, ConsoleFormatter.Color.YELLOW);
 
                 updatedChallenge.setAdditionalInfo(additionalInfo);
             }
@@ -268,7 +281,6 @@ public class UserServiceImpl implements UserService {
             return updatedChallenge;
         }
 
-//        printColored("USER FAILED CHALLENGE.", ConsoleFormatter.Color.RED);
         updatedChallenge.setStatus(ActivityAction.FAILED_CHALLENGE);
         return updatedChallenge;
     }
@@ -287,47 +299,41 @@ public class UserServiceImpl implements UserService {
                 result.justLost);
     }
 
-    private List<Badge> determineUserBadges(List<Badge> userBadges, UserStatistics userStats) {
+    private List<Badge> determineUserBadges(List<UserBadge> userBadges, UserStatistics userStats) {
         List<Badge> badgesToAdd = new ArrayList<>();
 
         // Pages
         if (adminStore.isGreaterThanMin(BadgeType.PAGES, userStats.pagesRead())) {
-//            printColored("INSIDE PAGES", ConsoleFormatter.Color.YELLOW);
             int highestTier = getHighestTierBadgeByType(userBadges, BadgeType.PAGES);
             badgesToAdd.addAll(getBadgesToAddToDB(highestTier, userStats.pagesRead(), BadgeType.PAGES));
         }
 
         // Friends
         if (adminStore.isGreaterThanMin(BadgeType.FRIENDS, userStats.totalFriends())) {
-//            printColored("INSIDE FRIENDS", ConsoleFormatter.Color.YELLOW);
             int highestTier = getHighestTierBadgeByType(userBadges, BadgeType.FRIENDS);
             badgesToAdd.addAll(getBadgesToAddToDB(highestTier, userStats.totalFriends(), BadgeType.FRIENDS));
         }
 
         // readingStreak
         if (adminStore.isGreaterThanMin(BadgeType.STREAK, userStats.readingStreak())) {
-//            printColored("INSIDE STREAK", ConsoleFormatter.Color.YELLOW);
             int highestTier = getHighestTierBadgeByType(userBadges, BadgeType.STREAK);
             badgesToAdd.addAll(getBadgesToAddToDB(highestTier, userStats.readingStreak(), BadgeType.STREAK));
         }
 
         // booksRead
         if (adminStore.isGreaterThanMin(BadgeType.BOOKS, userStats.booksRead())) {
-//            printColored("INSIDE BOOKS", ConsoleFormatter.Color.YELLOW);
             int highestTier = getHighestTierBadgeByType(userBadges, BadgeType.BOOKS);
             badgesToAdd.addAll(getBadgesToAddToDB(highestTier, userStats.booksRead(), BadgeType.BOOKS));
         }
 
         // booksCollected
         if (adminStore.isGreaterThanMin(BadgeType.COLLECTOR, userStats.booksCollected())) {
-//            printColored("INSIDE COLLECTOR", ConsoleFormatter.Color.YELLOW);
             int highestTier = getHighestTierBadgeByType(userBadges, BadgeType.COLLECTOR);
             badgesToAdd.addAll(getBadgesToAddToDB(highestTier, userStats.booksCollected(), BadgeType.COLLECTOR));
         }
 
         // challengesCompleted
         if (adminStore.isGreaterThanMin(BadgeType.CHALLENGES, userStats.challengesCompleted())) {
-//            printColored("INSIDE CHALLENGES", ConsoleFormatter.Color.YELLOW);
             int highestTier = getHighestTierBadgeByType(userBadges, BadgeType.CHALLENGES);
             badgesToAdd.addAll(getBadgesToAddToDB(highestTier, userStats.challengesCompleted(), BadgeType.CHALLENGES));
         }
@@ -335,7 +341,6 @@ public class UserServiceImpl implements UserService {
         // badgesEarned
         int badgesEarned = userStats.badgesEarned() + badgesToAdd.size();
         if (adminStore.isGreaterThanMin(BadgeType.COMPLETION, badgesEarned)) {
-//            printColored("INSIDE COMPLETION", ConsoleFormatter.Color.YELLOW);
             int highestTier = getHighestTierBadgeByType(userBadges, BadgeType.COMPLETION);
             badgesToAdd.addAll(getBadgesToAddToDB(highestTier, badgesEarned, BadgeType.COMPLETION));
         }
@@ -384,11 +389,11 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
-    private int getHighestTierBadgeByType(List<Badge> userBadges, BadgeType badgeType) {
+    private int getHighestTierBadgeByType(List<UserBadge> userBadges, BadgeType badgeType) {
         return userBadges.stream()
                 .filter(badge -> badge.type().getName().equalsIgnoreCase(badgeType.getName()))
-                .max(Comparator.comparingInt(Badge::tier))
-                .map(Badge::tier)
+                .max(Comparator.comparingInt(UserBadge::tier))
+                .map(UserBadge::tier)
                 .orElse((short) 0);
     }
 

@@ -1,14 +1,16 @@
 package com.coderiders.gamificationservice.controller;
 
+import com.coderiders.commonutils.models.records.UserBadge;
+import com.coderiders.commonutils.utils.ConsoleFormatter;
 import com.coderiders.gamificationservice.exception.BadRequestException;
 import com.coderiders.gamificationservice.models.Badge;
-import com.coderiders.gamificationservice.models.db.Badges;
 import com.coderiders.gamificationservice.models.db.ReadingChallenges;
 import com.coderiders.gamificationservice.models.enums.ActivityAction;
 import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
 import com.coderiders.gamificationservice.models.requests.SaveChallenge;
 import com.coderiders.gamificationservice.models.requests.SavePages;
 import com.coderiders.gamificationservice.models.responses.Status;
+import com.coderiders.gamificationservice.models.responses.UserChallengesExtraDTO;
 import com.coderiders.gamificationservice.repository.UserRepository;
 import com.coderiders.gamificationservice.services.AdminStore;
 import com.coderiders.gamificationservice.services.UserService;
@@ -21,8 +23,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+import static com.coderiders.commonutils.utils.ConsoleFormatter.printColored;
+
 @RestController
 @RefreshScope
+@RequestMapping("/gamification")
 @RequiredArgsConstructor
 public class GamificationServiceController {
 
@@ -35,7 +40,7 @@ public class GamificationServiceController {
         return new ResponseEntity<>("Gamification Service", HttpStatus.OK);
     }
 
-    @GetMapping("/test/{clerkId}")
+    @GetMapping("/points/{clerkId}")
     public ResponseEntity<Integer> helloGamification(@PathVariable String clerkId) {
         return new ResponseEntity<>(userRepository.getUserPoints(clerkId), HttpStatus.OK);
     }
@@ -45,13 +50,15 @@ public class GamificationServiceController {
         return new ResponseEntity<>(adminStore.getAllBadgesByType(), HttpStatus.OK);
     }
 
-    @GetMapping("/user/badges/{clerkId}")
-    public ResponseEntity<Badges> getBadgeByID(@PathVariable String clerkId) {
-        return  new ResponseEntity<>(new Badges(), HttpStatus.OK);
+    @GetMapping("/badges/{clerkId}")
+    public ResponseEntity<Map<String, List<UserBadge>>> getAllBadges(@PathVariable String clerkId) {
+        printColored("/badges/{clerkId} POST ENDPOINT HIT", ConsoleFormatter.Color.PURPLE);
+        return new ResponseEntity<>(userService.getUserBadges(clerkId), HttpStatus.OK);
     }
 
     @PostMapping("/pages")
     public ResponseEntity<Status> saveBadgeByID(@RequestBody SavePages body) {
+        printColored("/pages POST ENDPOINT HIT", ConsoleFormatter.Color.PURPLE);
         if (body.pagesRead() <= 0) {
             throw new BadRequestException("No Pages to Save");
         }
@@ -63,7 +70,7 @@ public class GamificationServiceController {
         return new ResponseEntity<>(userService.updateUserPages(body), HttpStatus.OK);
     }
 
-    @GetMapping("/challenges")
+    @GetMapping("/challenge")
     public ResponseEntity<List<ReadingChallenges>> getAllChallenges(
             @RequestParam(name = "isLimitedTime", required = false) Boolean isLimitedTime,
             @RequestParam(name = "type", required = false) String type) {
@@ -76,19 +83,34 @@ public class GamificationServiceController {
                     : new ResponseEntity<>(adminStore.getPermanentChallenges(), HttpStatus.OK);
         }
 
-
         return new ResponseEntity<>(adminStore.getAllChallenges(), HttpStatus.OK);
     }
 
-    @PostMapping("/gamification/challenge")
+
+    @PostMapping("/challenge")
     public ResponseEntity<String> saveChallenge(@RequestBody SaveChallenge body) {
-
-        if (body.challengeId() <= 0) return new ResponseEntity<>("INVALID ID", HttpStatus.OK);
-
-        if (body.clerkId() != null) {
-            userRepository.saveUserChallenge(body.clerkId(), body.challengeId());
+        printColored("/challenge POST ENDPOINT HIT", ConsoleFormatter.Color.PURPLE);
+        if (body.challengeId() <= 0) {
+            throw new BadRequestException("INVALID ID" + body.challengeId());
         }
+
+        if (body.clerkId() == null) {
+            throw new BadRequestException("No Provided Clerk Id");
+        }
+
+        userRepository.saveUserChallenge(body.clerkId(), body.challengeId());
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @GetMapping("/challenge/{clerkId}")
+    public ResponseEntity<List<UserChallengesExtraDTO>> getUserChallenges(@PathVariable String clerkId) {
+        printColored("/challenge/{clerkId} GET ENDPOINT HIT", ConsoleFormatter.Color.PURPLE);
+        if (clerkId == null) {
+            throw new BadRequestException("No Provided Clerk Id");
+        }
+
+        return new ResponseEntity<>(userService.getUserChallenges(clerkId), HttpStatus.OK);
+    }
+
 }

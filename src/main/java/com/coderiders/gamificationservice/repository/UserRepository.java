@@ -1,12 +1,13 @@
 package com.coderiders.gamificationservice.repository;
 
+import com.coderiders.commonutils.models.enums.BadgeType;
+import com.coderiders.commonutils.models.records.UserBadge;
 import com.coderiders.gamificationservice.models.Badge;
 import com.coderiders.gamificationservice.models.UserStatistics;
 import com.coderiders.gamificationservice.models.db.ReadingLogs;
 import com.coderiders.gamificationservice.models.dto.UserActivityDTO;
 import com.coderiders.gamificationservice.models.dto.UserChallengesDTO;
 import com.coderiders.gamificationservice.models.enums.ActivityAction;
-import com.coderiders.gamificationservice.models.enums.BadgeType;
 import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
 import com.coderiders.gamificationservice.models.requests.SavePages;
 import com.coderiders.gamificationservice.models.responses.UserChallengesExtraDTO;
@@ -76,18 +77,19 @@ public class UserRepository {
                         .build());
     }
 
-    public List<Badge> getUserBadges(String clerkId) {
+    public List<UserBadge> getUserBadges(String clerkId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(QueryParam.FIRST.getName(), clerkId);
         return jdbcTemplate.query(Queries.getUserBadgeExpended, params, (rs, rowNum) ->
-                new Badge(rs.getLong("id"),
+                new UserBadge(rs.getLong("id"),
                         rs.getString("name"),
                         rs.getString("description"),
                         rs.getInt("threshold"),
                         BadgeType.getBadgeTypeByName(rs.getString("type")),
                         (rs.getShort("tier")),
                         rs.getString("image_url"),
-                        rs.getInt("points_awarded")));
+                        rs.getInt("points_awarded"),
+                        Utils.convertToLocalDateTime(rs.getTimestamp("date_earned"))));
     }
 
     public List<UserChallengesDTO> getUserChallenges(String clerkId) {
@@ -100,8 +102,9 @@ public class UserRepository {
                         rs.getString("name"),
                         rs.getString("description"),
                         ChallengeFrequency.getChallengeTypeByName(rs.getString("frequency")),
-                        BadgeType.getBadgeTypeByName(rs.getString("type")),
+                        com.coderiders.gamificationservice.models.enums.BadgeType.getBadgeTypeByName(rs.getString("type")),
                         rs.getInt("threshold"),
+                        rs.getInt("duration"),
                         Utils.convertToLocalDateTime(rs.getTimestamp("challengeStartDate")),
                         Utils.convertToLocalDateTime(rs.getTimestamp("challengeEndDate")),
                         rs.getInt("points_awarded"),

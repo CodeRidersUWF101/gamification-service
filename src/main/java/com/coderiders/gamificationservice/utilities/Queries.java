@@ -9,7 +9,8 @@ public class Queries {
     public static final String getUserBadgeExpended = """
             SELECT
                 b.*,
-                ps.points_awarded
+                ps.points_awarded,
+                ub.date_earned
             FROM UserBadges ub
             JOIN Badges b ON b.id = ub.badge_id
             JOIN PointsSystem ps ON ps.element_type = 'Badge' AND ps.tier = b.tier
@@ -47,6 +48,7 @@ public class Queries {
             c.frequency,
             c.type,
             c.threshold,
+            c.duration,
             c.start_date as challengeStartDate,
             c.end_date as challengeEndDate,
             c.points_awarded,
