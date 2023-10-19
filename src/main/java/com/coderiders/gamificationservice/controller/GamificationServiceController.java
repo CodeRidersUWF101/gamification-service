@@ -1,16 +1,17 @@
 package com.coderiders.gamificationservice.controller;
 
+import com.coderiders.commonutils.models.AddItem;
+import com.coderiders.commonutils.models.ReadingChallenges;
+import com.coderiders.commonutils.models.Status;
+import com.coderiders.commonutils.models.UserChallengesExtraDTO;
+import com.coderiders.commonutils.models.enums.ActivityAction;
+import com.coderiders.commonutils.models.enums.ChallengeFrequency;
+import com.coderiders.commonutils.models.records.Badge;
 import com.coderiders.commonutils.models.records.UserBadge;
+import com.coderiders.commonutils.models.requests.UpdateProgress;
 import com.coderiders.commonutils.utils.ConsoleFormatter;
 import com.coderiders.gamificationservice.exception.BadRequestException;
-import com.coderiders.gamificationservice.models.Badge;
-import com.coderiders.gamificationservice.models.db.ReadingChallenges;
-import com.coderiders.gamificationservice.models.enums.ActivityAction;
-import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
 import com.coderiders.gamificationservice.models.requests.SaveChallenge;
-import com.coderiders.gamificationservice.models.requests.SavePages;
-import com.coderiders.gamificationservice.models.responses.Status;
-import com.coderiders.gamificationservice.models.responses.UserChallengesExtraDTO;
 import com.coderiders.gamificationservice.repository.UserRepository;
 import com.coderiders.gamificationservice.services.AdminStore;
 import com.coderiders.gamificationservice.services.UserService;
@@ -57,14 +58,14 @@ public class GamificationServiceController {
     }
 
     @PostMapping("/pages")
-    public ResponseEntity<Status> saveBadgeByID(@RequestBody SavePages body) {
+    public ResponseEntity<Status> savePages(@RequestBody UpdateProgress body) {
         printColored("/pages POST ENDPOINT HIT", ConsoleFormatter.Color.PURPLE);
-        if (body.pagesRead() <= 0) {
+        if (body.getPagesRead() <= 0) {
             throw new BadRequestException("No Pages to Save");
         }
 
-        if(!ActivityAction.isValidActionName(body.action())) {
-            throw new BadRequestException("Bad Action: " + body.action());
+        if (!ActivityAction.isValidActionName(body.getAction())) {
+            throw new BadRequestException("Bad Action: " + body.getAction());
         }
 
         return new ResponseEntity<>(userService.updateUserPages(body), HttpStatus.OK);
@@ -114,5 +115,25 @@ public class GamificationServiceController {
 
         return new ResponseEntity<>(userService.getUserChallenges(clerkId), HttpStatus.OK);
     }
+
+    @PostMapping("/activity")
+    public ResponseEntity<AddItem> addItemToActivity(@RequestBody AddItem itemToAdd) {
+        printColored("/activity POST ENDPOINT HIT", ConsoleFormatter.Color.PURPLE);
+
+        if (itemToAdd == null) {
+            throw new BadRequestException("No Provided Item");
+        }
+
+        if (itemToAdd.getClerkId() == null) {
+            throw new BadRequestException("No Provided Clerk Id");
+        }
+
+        if (!ActivityAction.isValidActionName(itemToAdd.getAction())) {
+            throw new BadRequestException("Bad Action: " + itemToAdd.getAction());
+        }
+
+        return new ResponseEntity<>(userService.addItemToActivity(itemToAdd), HttpStatus.OK);
+    }
+
 
 }

@@ -1,21 +1,21 @@
 package com.coderiders.gamificationservice.services.Impl;
 
-import com.coderiders.gamificationservice.models.Badge;
+import com.coderiders.commonutils.models.ReadingChallenges;
+import com.coderiders.commonutils.models.enums.BadgeType;
+import com.coderiders.commonutils.models.enums.ChallengeFrequency;
+import com.coderiders.commonutils.models.records.Badge;
+import com.coderiders.commonutils.utils.ConsoleFormatter;
 import com.coderiders.gamificationservice.models.db.Badges;
 import com.coderiders.gamificationservice.models.db.PointsSystem;
-import com.coderiders.gamificationservice.models.db.ReadingChallenges;
 import com.coderiders.gamificationservice.models.dto.TiersThresholdsDTO;
-import com.coderiders.gamificationservice.models.enums.BadgeType;
-import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
 import com.coderiders.gamificationservice.services.AdminStore;
-import com.coderiders.gamificationservice.utilities.ConsoleFormatter;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.coderiders.gamificationservice.utilities.ConsoleFormatter.printColored;
+import static com.coderiders.commonutils.utils.ConsoleFormatter.printColored;
 
 @Service
 public class AdminStoreImpl implements AdminStore {
