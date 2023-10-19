@@ -1,6 +1,6 @@
 package com.coderiders.gamificationservice.models;
 
-public record UserStatistics(
+public record UserStatistics (
         int pagesRead,
         int challengesCompleted,
         int badgesEarned,

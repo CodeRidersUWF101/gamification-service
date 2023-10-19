@@ -1,20 +1,21 @@
 package com.coderiders.gamificationservice.services.Impl;
 
-import com.coderiders.commonutils.models.records.UserBadge;
-import com.coderiders.gamificationservice.models.Badge;
+import com.coderiders.commonutils.models.AddItem;
+import com.coderiders.commonutils.models.Status;
+import com.coderiders.commonutils.models.UserChallengesExtraDTO;
+import com.coderiders.commonutils.models.enums.ActivityAction;
+import com.coderiders.commonutils.models.enums.BadgeType;
+import com.coderiders.commonutils.models.records.*;
+import com.coderiders.commonutils.models.requests.UpdateProgress;
+import com.coderiders.commonutils.utils.ConsoleFormatter;
 import com.coderiders.gamificationservice.models.UserStatistics;
 import com.coderiders.gamificationservice.models.db.ReadingLogs;
-import com.coderiders.gamificationservice.models.dto.UserChallengesDTO;
-import com.coderiders.gamificationservice.models.enums.ActivityAction;
-import com.coderiders.gamificationservice.models.enums.BadgeType;
-import com.coderiders.gamificationservice.models.requests.SavePages;
-import com.coderiders.gamificationservice.models.responses.*;
 import com.coderiders.gamificationservice.repository.UserRepository;
 import com.coderiders.gamificationservice.services.AdminStore;
 import com.coderiders.gamificationservice.services.UserService;
-import com.coderiders.gamificationservice.utilities.ConsoleFormatter;
 import com.coderiders.gamificationservice.utilities.Constants;
 import com.coderiders.gamificationservice.utilities.ReadingStreak;
+import com.coderiders.gamificationservice.utilities.Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.coderiders.gamificationservice.utilities.ConsoleFormatter.printColored;
+import static com.coderiders.commonutils.utils.ConsoleFormatter.printColored;
 import static com.coderiders.gamificationservice.utilities.ReadingStreak.calculateReadingStreak;
 import static java.time.temporal.ChronoUnit.DAYS;
 
@@ -40,36 +41,36 @@ public class UserServiceImpl implements UserService {
             ActivityAction.FAILED_CHALLENGE.getName());
 
     @Override
-    public Status updateUserPages(SavePages pages) {
-        ActivityAction userAction = ActivityAction.getActivityActionByName(pages.action());
+    public Status updateUserPages(UpdateProgress pages) {
+        ActivityAction userAction = ActivityAction.getActivityActionByName(pages.getAction());
 
         // get all user badges
-        List<UserBadge> userBadges = userRepository.getUserBadges(pages.clerkId());
+        List<UserBadge> userBadges = userRepository.getUserBadges(pages.getClerkId());
 
         // Add pages to ReadingLog
         userRepository.saveReadingLog(pages, userAction);
-        List<ReadingLogs> logs = getUserReadingLogs(pages.clerkId());
+        List<ReadingLogs> logs = getUserReadingLogs(pages.getClerkId());
 
         // Get User Statistics
-        UserStatistics stats = getUserStatistics(pages.clerkId(), logs);
+        UserStatistics stats = getUserStatistics(pages.getClerkId(), logs);
 
         List<Badge> badgesEarned = determineUserBadges(userBadges, stats);
 
         // if badgesEarned has items
         if (!badgesEarned.isEmpty()) {
-            userRepository.addBadgesToUser(pages.clerkId(), badgesEarned);
+            userRepository.addBadgesToUser(pages.getClerkId(), badgesEarned);
         }
 
         // Check if user is enrolled in a challenge
-        List<UserChallengesDTO> userChallenges = userRepository.getUserChallenges(pages.clerkId());
+        List<UserChallengesDTO> userChallenges = userRepository.getUserChallenges(pages.getClerkId());
 
         List<UserChallengesExtraDTO> updatedChallenges = determineUserChallenges(userChallenges, logs);
 
         List<UserChallengesExtraDTO> challengesToUpdate = updatedChallenges.stream()
-                .filter(item -> validChallengeSaveActions.contains(item.getStatus().getName()))
+                .filter(item -> validChallengeSaveActions.contains(item.getStatus()))
                 .toList();
 
-        userRepository.updateUserChallenges(challengesToUpdate, pages.clerkId());
+        userRepository.updateUserChallenges(challengesToUpdate, pages.getClerkId());
 
         return prepareReturnStatus(badgesEarned, updatedChallenges);
     }
@@ -85,13 +86,13 @@ public class UserServiceImpl implements UserService {
         List<UserChallengesDTO> userChallenges = userRepository.getUserChallenges(clerkId);
 
         Map<Long, UserChallengesExtraDTO> updatedChallengesMap = determineUserChallenges(userChallenges, logs).stream()
-                .filter(item -> ActivityAction.STARTED_CHALLENGE.getName().equalsIgnoreCase(item.getStatus().getName()))
+                .filter(item -> ActivityAction.STARTED_CHALLENGE.getName().equalsIgnoreCase(item.getStatus()))
                 .collect(Collectors.toMap(UserChallengesExtraDTO::getId, Function.identity()));
 
         Set<Long> challengeIds = updatedChallengesMap.keySet();
 
         return adminStore.getAllChallenges().stream()
-                .map(UserChallengesExtraDTO::readingChallengeToDTO)
+                .map(Utils::readingChallengeToDTO)
                 .map(chall -> challengeIds.contains(chall.getId()) ? updatedChallengesMap.get(chall.getId()) : chall)
                 .collect(Collectors.toList());
     }
@@ -99,32 +100,123 @@ public class UserServiceImpl implements UserService {
     @Override
     public Map<String, List<UserBadge>> getUserBadges(String clerkId) {
         List<UserBadge> userBadges = userRepository.getUserBadges(clerkId);
-        List<Long> userBadgeIds = userBadges.stream().map(UserBadge::id).toList();
+        Map<Long, UserBadge> userBadgeMap = userBadges.stream().collect(Collectors.toMap(UserBadge::getId, Function.identity()));
 
-        // TODO: Add a You have x many x until you earn the next badge! To this return.
-        //        List<ReadingLogs> logs = getUserReadingLogs(clerkId);
-        //        // Get User Statistics
-        //        UserStatistics stats = getUserStatistics(clerkId, logs);
+        List<ReadingLogs> logs = getUserReadingLogs(clerkId);
+        UserStatistics stats = getUserStatistics(clerkId, logs);
 
-        return adminStore.getAllBadgesList().stream()
+        Map<String, List<UserBadge>> returnBadges = adminStore.getAllBadgesList().stream()
                 .map(this::badgeToUserBadge)
-                .map(item -> userBadgeIds.contains(item.id())
-                        ? userBadges.stream().filter(b -> b.id() == item.id()).findFirst().get()
-                        : item)
-                .collect(Collectors.groupingBy(badge -> badge.type().getName()));
+                .map(item -> userBadgeMap.getOrDefault(item.getId(), item))
+                .collect(Collectors.groupingBy(badge -> badge.getType().getName()));
+
+        return determineBadgeProgress(returnBadges, stats);
+    }
+
+    @Override
+    public AddItem addItemToActivity(AddItem addItem) {
+
+        userRepository.saveSingleUserActivity(addItem.getClerkId(),
+                ActivityAction.getActivityActionByName(addItem.getAction()),
+                null);
+
+        return addItem;
+    }
+
+    private Map<String, List<UserBadge>> determineBadgeProgress(Map<String, List<UserBadge>> badges, UserStatistics stats) {
+        for (Map.Entry<String, List<UserBadge>> entry : badges.entrySet()) {
+            String key = entry.getKey();
+            List<UserBadge> values = entry.getValue();
+
+            int highestTierEarned = -1;
+            for (int i = 0; i < values.size(); i++) {
+                UserBadge currBadge = values.get(i);
+                if (currBadge.getDateEarned() != null) { highestTierEarned = i; }
+            }
+
+            int highestTierForBadgeType = adminStore.getMaxTier(BadgeType.getBadgeTypeByName(key));
+            if (highestTierEarned >= (highestTierForBadgeType - 1)) { continue; }
+
+            // Pages
+            if (BadgeType.PAGES.getName().equalsIgnoreCase(key)) {
+                UserBadge currBadge = values.get(highestTierEarned + 1);
+                currBadge.setAdditionalBadgeInfo(getBadgeInfo(currBadge, stats.pagesRead()));
+                values.set(highestTierEarned + 1, currBadge);
+            }
+
+            // Friends
+            if (BadgeType.FRIENDS.getName().equalsIgnoreCase(key)) {
+                UserBadge currBadge = values.get(highestTierEarned + 1);
+                currBadge.setAdditionalBadgeInfo(getBadgeInfo(currBadge, stats.totalFriends()));
+                values.set(highestTierEarned + 1, currBadge);
+            }
+
+            // readingStreak
+            if (BadgeType.STREAK.getName().equalsIgnoreCase(key)) {
+                UserBadge currBadge = values.get(highestTierEarned + 1);
+                currBadge.setAdditionalBadgeInfo(getBadgeInfo(currBadge, stats.readingStreak()));
+                values.set(highestTierEarned + 1, currBadge);
+            }
+
+            // booksRead
+            if (BadgeType.BOOKS.getName().equalsIgnoreCase(key)) {
+                UserBadge currBadge = values.get(highestTierEarned + 1);
+                currBadge.setAdditionalBadgeInfo(getBadgeInfo(currBadge, stats.booksRead()));
+                values.set(highestTierEarned + 1, currBadge);
+            }
+
+            // booksCollected
+            if (BadgeType.COLLECTOR.getName().equalsIgnoreCase(key)) {
+                UserBadge currBadge = values.get(highestTierEarned + 1);
+                currBadge.setAdditionalBadgeInfo(getBadgeInfo(currBadge, stats.booksCollected()));
+                values.set(highestTierEarned + 1, currBadge);
+            }
+
+            // challengesCompleted
+            if (BadgeType.CHALLENGES.getName().equalsIgnoreCase(key)) {
+                UserBadge currBadge = values.get(highestTierEarned + 1);
+                currBadge.setAdditionalBadgeInfo(getBadgeInfo(currBadge, stats.challengesCompleted()));
+                values.set(highestTierEarned + 1, currBadge);
+            }
+
+            // reviews
+            if (BadgeType.ENGAGEMENT.getName().equalsIgnoreCase(key)) {
+                UserBadge currBadge = values.get(highestTierEarned + 1);
+                currBadge.setAdditionalBadgeInfo(getBadgeInfo(currBadge, null));
+                values.set(highestTierEarned + 1, currBadge);
+            }
+
+            // badgesEarned
+            if (BadgeType.COMPLETION.getName().equalsIgnoreCase(key)) {
+                UserBadge currBadge = values.get(highestTierEarned + 1);
+                currBadge.setAdditionalBadgeInfo(getBadgeInfo(currBadge, stats.badgesEarned()));
+                values.set(highestTierEarned + 1, currBadge);
+            }
+        }
+        return badges;
+    }
+
+    private AdditionalChallengeInfo getBadgeInfo(UserBadge badge, Integer complete) {
+        if (complete == null) {
+            return new AdditionalChallengeInfo(0.0, 1.0, 0.0);
+        }
+
+        double toGo = badge.getThreshold() - complete;
+        double percentComplete = ((double) complete / badge.getThreshold()) * 100;
+        return  new AdditionalChallengeInfo((double) complete, toGo, percentComplete);
     }
 
     private UserBadge badgeToUserBadge(Badge badge) {
         return new UserBadge(
-                badge.id(),
-                badge.name(),
-                badge.description(),
-                badge.threshold(),
-                com.coderiders.commonutils.models.enums.BadgeType.getBadgeTypeByName(badge.type().getName()),
-                badge.tier(),
-                badge.imageUrl(),
-                badge.pointsAwarded(),
-                null);
+                badge.getId(),
+                badge.getName(),
+                badge.getDescription(),
+                badge.getThreshold(),
+                BadgeType.getBadgeTypeByName(badge.getType().getName()),
+                badge.getTier(),
+                badge.getImageUrl(),
+                badge.getPointsAwarded(),
+                null, null);
     }
 
     private Status prepareReturnStatus(List<Badge> badgesEarned, List<UserChallengesExtraDTO> challengedCompleted) {
@@ -140,19 +232,17 @@ public class UserServiceImpl implements UserService {
         for (UserChallengesDTO challenge : userChallenges) {
 
             // if startDate or EndDate is null, it's a permanent event and needs to be determined by user.
-            if (challenge.challengeStartDate() == null || challenge.challengeEndDate() == null) {
-                LocalDate userChallengeStartDate = challenge.userChallengeStartDate().toLocalDate();
-                LocalDate userEndDate = userChallengeStartDate.plusDays(challenge.duration() - 1);
+            if (challenge.getChallengeStartDate() == null || challenge.getChallengeEndDate() == null) {
+                LocalDate userChallengeStartDate = challenge.getUserChallengeStartDate().toLocalDate();
+                LocalDate userEndDate = userChallengeStartDate.plusDays(challenge.getDuration() - 1);
 
                 Predicate<ReadingLogs> filteredLogsToProperRange = log ->
-                        (log.getDate().isAfter(userChallengeStartDate.atStartOfDay())
-                                || log.getDate().isEqual(userChallengeStartDate.atStartOfDay()))
-                        && (log.getDate().isBefore(userEndDate.plusDays(1).atStartOfDay())
-                                || log.getDate().isEqual(userEndDate.atStartOfDay()));
+                        (log.getDate().isAfter(userChallengeStartDate.atStartOfDay()) || log.getDate().isEqual(userChallengeStartDate.atStartOfDay()))
+                        && (log.getDate().isBefore(userEndDate.plusDays(1).atStartOfDay()) || log.getDate().isEqual(userEndDate.atStartOfDay()));
 
                 Stream<ReadingLogs> filteredLogs = logs.stream().filter(filteredLogsToProperRange);
 
-                UserChallengesExtraDTO updatedChallenge = switch (challenge.type()) {
+                UserChallengesExtraDTO updatedChallenge = switch (challenge.getType()) {
                     case STREAK -> checkStreak(filteredLogs, challenge);
                     case PAGES -> checkPages(filteredLogs, challenge);
                     case BOOKS -> checkBooksRead(filteredLogs, challenge);
@@ -160,14 +250,13 @@ public class UserServiceImpl implements UserService {
                 };
 
                 if (updatedChallenge != null) {
-                    updatedChallenge.setUserChallengeEndDate(userEndDate.atTime(23, 59, 59));
+                    updatedChallenge.setUserChallengeEndDate(String.valueOf(userEndDate.atTime(23, 59, 59)));
                     returnChallenges.add(updatedChallenge);
                 }
 
             } else { // timed challenge - handled differently
                 printColored("TIMED CHALLENGE", ConsoleFormatter.Color.RED);
             }
-
         }
         return returnChallenges;
     }
@@ -191,12 +280,12 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserChallengesExtraDTO checkChallengeByThreshold(UserChallengesDTO challenge, int userActual) {
-        UserChallengesExtraDTO updatedChallenge = UserChallengesExtraDTO.userChallengesToDTO(challenge);
-        int challengeThreshold = challenge.threshold();
+        UserChallengesExtraDTO updatedChallenge = Utils.userChallengesToDTO(challenge);
+        int challengeThreshold = challenge.getThreshold();
 
         LocalDate today = LocalDate.now();
-        LocalDate userChallengeStartDate = challenge.userChallengeStartDate().toLocalDate();
-        LocalDate userEndDate = userChallengeStartDate.plusDays(challenge.duration() - 1);
+        LocalDate userChallengeStartDate = challenge.getUserChallengeStartDate().toLocalDate();
+        LocalDate userEndDate = userChallengeStartDate.plusDays(challenge.getDuration() - 1);
 
         if (today.isBefore(userEndDate) || today.isEqual(userEndDate)) {
 
@@ -208,7 +297,7 @@ public class UserServiceImpl implements UserService {
             // User has completed the challenge.
             if (userActual >= challengeThreshold) {
 
-                updatedChallenge.setStatus(ActivityAction.COMPLETED_CHALLENGE);
+                updatedChallenge.setStatus(ActivityAction.COMPLETED_CHALLENGE.getName());
                 DateProgress dateProgress = new DateProgress(percentageComplete, daysCompleted, remainingDays);
                 updatedChallenge.setDateProgress(dateProgress);
 
@@ -218,12 +307,12 @@ public class UserServiceImpl implements UserService {
                 double pagesToGo = challengeThreshold - userActual;
 
                 AdditionalChallengeInfo additionalInfo = new AdditionalChallengeInfo(
-                        userActual,
+                        (double) userActual,
                         pagesToGo,
                         percentageOfChallengeComplete);
 
                 updatedChallenge.setAdditionalInfo(additionalInfo);
-                updatedChallenge.setStatus(ActivityAction.STARTED_CHALLENGE);
+                updatedChallenge.setStatus(ActivityAction.STARTED_CHALLENGE.getName());
                 DateProgress dateProgress = new DateProgress(percentageComplete, daysCompleted, remainingDays);
                 updatedChallenge.setDateProgress(dateProgress);
             }
@@ -231,18 +320,17 @@ public class UserServiceImpl implements UserService {
         }
 
         // User has failed the challenge.
-        updatedChallenge.setStatus(ActivityAction.FAILED_CHALLENGE);
+        updatedChallenge.setStatus(ActivityAction.FAILED_CHALLENGE.getName());
         return updatedChallenge;
     }
-
 
     private UserChallengesExtraDTO checkStreak(Stream<ReadingLogs> filteredLogs, UserChallengesDTO challenge) {
 
         LocalDate today = LocalDate.now();
-        LocalDate userChallengeStartDate = challenge.userChallengeStartDate().toLocalDate();
-        LocalDate userEndDate = userChallengeStartDate.plusDays(challenge.duration() - 1);
+        LocalDate userChallengeStartDate = challenge.getUserChallengeStartDate().toLocalDate();
+        LocalDate userEndDate = userChallengeStartDate.plusDays(challenge.getDuration() - 1);
 
-        UserChallengesExtraDTO updatedChallenge = UserChallengesExtraDTO.userChallengesToDTO(challenge);
+        UserChallengesExtraDTO updatedChallenge = Utils.userChallengesToDTO(challenge);
 
         // List of expected Days
         List<LocalDate> allExpectedDates = getExpectedDays(userChallengeStartDate);
@@ -258,13 +346,13 @@ public class UserServiceImpl implements UserService {
                         .anyMatch(loggedDate -> loggedDate.isEqual(expectedDate)));
 
         long totalDays = DAYS.between(userChallengeStartDate, userEndDate.plusDays(1));
-        int daysCompleted = (int) DAYS.between(userChallengeStartDate.minusDays(1), today);
-        int remainingDays = (int) DAYS.between(today, userEndDate);
-        double percentageComplete = ((double) daysCompleted / totalDays) * 100;
+        double daysCompleted = DAYS.between(userChallengeStartDate.minusDays(1), today);
+        double remainingDays = DAYS.between(today, userEndDate);
+        double percentageComplete = (daysCompleted / totalDays) * 100;
 
         if (hasLogForEachDay) {  // At least one log for exists for each day exists
             if (today.isAfter(userEndDate) || today.isEqual(userEndDate)) { // User has completed the challenge.
-                updatedChallenge.setStatus(ActivityAction.COMPLETED_CHALLENGE);
+                updatedChallenge.setStatus(ActivityAction.COMPLETED_CHALLENGE.getName());
 
             } else { // User has not failed but is not over yet.
                 AdditionalChallengeInfo additionalInfo = new AdditionalChallengeInfo(
@@ -275,13 +363,13 @@ public class UserServiceImpl implements UserService {
                 updatedChallenge.setAdditionalInfo(additionalInfo);
             }
 
-            DateProgress dateProgress = new DateProgress(percentageComplete, daysCompleted, remainingDays);
+            DateProgress dateProgress = new DateProgress(percentageComplete, (int) daysCompleted, (int) remainingDays);
             updatedChallenge.setDateProgress(dateProgress);
 
             return updatedChallenge;
         }
 
-        updatedChallenge.setStatus(ActivityAction.FAILED_CHALLENGE);
+        updatedChallenge.setStatus(ActivityAction.FAILED_CHALLENGE.getName());
         return updatedChallenge;
     }
 
@@ -391,29 +479,29 @@ public class UserServiceImpl implements UserService {
 
     private int getHighestTierBadgeByType(List<UserBadge> userBadges, BadgeType badgeType) {
         return userBadges.stream()
-                .filter(badge -> badge.type().getName().equalsIgnoreCase(badgeType.getName()))
-                .max(Comparator.comparingInt(UserBadge::tier))
-                .map(UserBadge::tier)
+                .filter(badge -> badge.getType().getName().equalsIgnoreCase(badgeType.getName()))
+                .max(Comparator.comparingInt(UserBadge::getTier))
+                .map(UserBadge::getTier)
                 .orElse((short) 0);
     }
 
     private Badge getHighestBadgeBadgeByType(List<Badge> userBadges, BadgeType badgeType) {
         return userBadges.stream()
-                .filter(bad -> bad.type().getName().equalsIgnoreCase(badgeType.getName()))
-                .max(Comparator.comparingInt(Badge::tier))
+                .filter(bad -> bad.getType().getName().equalsIgnoreCase(badgeType.getName()))
+                .max(Comparator.comparingInt(Badge::getTier))
                 .orElse(null);
     }
 
     private BadgeWithNext badgeToWithNext(Badge badge) {
         return new BadgeWithNext(
-                badge.id(),
-                badge.name(),
-                badge.description(),
-                badge.threshold(),
-                badge.type(),
-                badge.tier(),
-                badge.imageUrl(),
-                badge.pointsAwarded(),
-                adminStore.getNextBadge(badge.type(), (short) (badge.tier() + 1)));
+                badge.getId(),
+                badge.getName(),
+                badge.getDescription(),
+                badge.getThreshold(),
+                badge.getType(),
+                badge.getTier(),
+                badge.getImageUrl(),
+                badge.getPointsAwarded(),
+                adminStore.getNextBadge(badge.getType(), (short) (badge.getTier() + 1)));
     }
 }

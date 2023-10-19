@@ -1,11 +1,11 @@
 package com.coderiders.gamificationservice.repository;
 
+import com.coderiders.commonutils.models.ReadingChallenges;
+import com.coderiders.commonutils.models.enums.BadgeType;
+import com.coderiders.commonutils.models.enums.ChallengeFrequency;
 import com.coderiders.gamificationservice.models.db.Badges;
 import com.coderiders.gamificationservice.models.db.PointsSystem;
-import com.coderiders.gamificationservice.models.db.ReadingChallenges;
 import com.coderiders.gamificationservice.models.dto.TiersThresholdsDTO;
-import com.coderiders.gamificationservice.models.enums.BadgeType;
-import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
 import com.coderiders.gamificationservice.models.enums.ElementType;
 import com.coderiders.gamificationservice.utilities.AdminQueries;
 import com.coderiders.gamificationservice.utilities.QueryParam;

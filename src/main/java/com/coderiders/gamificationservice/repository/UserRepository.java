@@ -1,17 +1,16 @@
 package com.coderiders.gamificationservice.repository;
 
+import com.coderiders.commonutils.models.UserChallengesExtraDTO;
+import com.coderiders.commonutils.models.enums.ActivityAction;
 import com.coderiders.commonutils.models.enums.BadgeType;
+import com.coderiders.commonutils.models.enums.ChallengeFrequency;
+import com.coderiders.commonutils.models.records.Badge;
 import com.coderiders.commonutils.models.records.UserBadge;
-import com.coderiders.gamificationservice.models.Badge;
+import com.coderiders.commonutils.models.records.UserChallengesDTO;
+import com.coderiders.commonutils.models.requests.UpdateProgress;
 import com.coderiders.gamificationservice.models.UserStatistics;
 import com.coderiders.gamificationservice.models.db.ReadingLogs;
 import com.coderiders.gamificationservice.models.dto.UserActivityDTO;
-import com.coderiders.gamificationservice.models.dto.UserChallengesDTO;
-import com.coderiders.gamificationservice.models.enums.ActivityAction;
-import com.coderiders.gamificationservice.models.enums.ChallengeFrequency;
-import com.coderiders.gamificationservice.models.requests.SavePages;
-import com.coderiders.gamificationservice.models.responses.UserChallengesExtraDTO;
-import com.coderiders.gamificationservice.utilities.ConsoleFormatter;
 import com.coderiders.gamificationservice.utilities.Queries;
 import com.coderiders.gamificationservice.utilities.QueryParam;
 import com.coderiders.gamificationservice.utilities.Utils;
@@ -25,7 +24,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.coderiders.gamificationservice.utilities.ConsoleFormatter.printColored;
 
 
 @Repository
@@ -34,11 +32,11 @@ public class UserRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public void saveReadingLog(SavePages pages, ActivityAction action) {
+    public void saveReadingLog(UpdateProgress pages, ActivityAction action) {
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue(QueryParam.FIRST.getName(), pages.clerkId());
-        params.addValue(QueryParam.SECOND.getName(), pages.pagesRead());
-        params.addValue(QueryParam.THIRD.getName(), pages.bookId());
+        params.addValue(QueryParam.FIRST.getName(), pages.getClerkId());
+        params.addValue(QueryParam.SECOND.getName(), pages.getPagesRead());
+        params.addValue(QueryParam.THIRD.getName(), pages.getBookId());
         params.addValue(QueryParam.FOURTH.getName(), action.getName());
 
         jdbcTemplate.update(Queries.savePages, params);
@@ -89,7 +87,8 @@ public class UserRepository {
                         (rs.getShort("tier")),
                         rs.getString("image_url"),
                         rs.getInt("points_awarded"),
-                        Utils.convertToLocalDateTime(rs.getTimestamp("date_earned"))));
+                        Utils.convertToLocalDateTime(rs.getTimestamp("date_earned")),
+                        null));
     }
 
     public List<UserChallengesDTO> getUserChallenges(String clerkId) {
@@ -102,7 +101,7 @@ public class UserRepository {
                         rs.getString("name"),
                         rs.getString("description"),
                         ChallengeFrequency.getChallengeTypeByName(rs.getString("frequency")),
-                        com.coderiders.gamificationservice.models.enums.BadgeType.getBadgeTypeByName(rs.getString("type")),
+                        BadgeType.getBadgeTypeByName(rs.getString("type")),
                         rs.getInt("threshold"),
                         rs.getInt("duration"),
                         Utils.convertToLocalDateTime(rs.getTimestamp("challengeStartDate")),
@@ -118,11 +117,9 @@ public class UserRepository {
         for (Badge badge : badgesToAdd) {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue(QueryParam.FIRST.getName(), clerkId);
-            params.addValue(QueryParam.SECOND.getName(), badge.id());
+            params.addValue(QueryParam.SECOND.getName(), badge.getId());
             parameters.add(params);
         }
-
-        badgesToAdd.forEach(item -> printColored("addBadgesToUser: " + item, ConsoleFormatter.Color.GREEN));
 
         jdbcTemplate.batchUpdate(Queries.saveUserBadges, parameters.toArray(new SqlParameterSource[0]));
     }
@@ -132,7 +129,7 @@ public class UserRepository {
 
         for (UserChallengesExtraDTO challenge : challenges) {
             MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue(QueryParam.FIRST.getName(), challenge.getStatus().getName());
+            params.addValue(QueryParam.FIRST.getName(), challenge.getStatus());
             params.addValue(QueryParam.SECOND.getName(), LocalDateTime.now());
             params.addValue(QueryParam.THIRD.getName(), clerkId);
             params.addValue(QueryParam.FOURTH.getName(), challenge.getUserChallengeId());
