@@ -1,6 +1,7 @@
 package com.coderiders.gamificationservice.services.Impl;
 
 import com.coderiders.commonutils.models.AddItem;
+import com.coderiders.commonutils.models.LatestAchievement;
 import com.coderiders.commonutils.models.Status;
 import com.coderiders.commonutils.models.UserChallengesExtraDTO;
 import com.coderiders.commonutils.models.enums.ActivityAction;
@@ -121,6 +122,11 @@ public class UserServiceImpl implements UserService {
                 null);
 
         return addItem;
+    }
+
+    @Override
+    public List<LatestAchievement> getLatestUserAchievements(String clerkId) {
+        return userRepository.getLatestUserAchievements(clerkId);
     }
 
     private Map<String, List<UserBadge>> determineBadgeProgress(Map<String, List<UserBadge>> badges, UserStatistics stats) {

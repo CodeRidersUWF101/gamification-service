@@ -59,6 +59,50 @@ public class Queries {
             WHERE clerk_id = :first AND uc.status = 'STARTED_CHALLENGE';
             """;
 
+    public static final String getLatestAchievements = """
+            WITH Combined AS (
+                SELECT
+                    'Badge' AS ElementType,
+                    b.name AS Name,
+                    b.description AS Description,
+                    b.threshold AS Threshold,
+                    ub.date_earned AS Date
+                FROM
+                    UserBadges ub
+                JOIN
+                    Badges b ON ub.badge_id = b.id
+                WHERE
+                    ub.clerk_id = :first
+                        
+                UNION ALL
+                        
+                SELECT
+                    'Challenge' AS ElementType,
+                    rc.name AS Name,
+                    rc.description AS Description,
+                    rc.threshold AS Threshold,
+                    uc.date_ended AS Date
+                FROM
+                    UserChallenges uc
+                JOIN
+                    ReadingChallenges rc ON uc.challenge_id = rc.id
+                WHERE
+                    uc.clerk_id = :first
+                    AND uc.status = 'COMPLETED_CHALLENGE'
+            )
+            SELECT
+                ElementType,
+                Name,
+                Description,
+                Threshold,
+                Date
+            FROM
+                Combined
+            ORDER BY
+                Date DESC
+            LIMIT 3;
+            """;
+
     public static final String savePages = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (:%s, :%s, :%s, :%s)",
                 TableNames.READING_LOGS.getName(),
                 TableField.CLERK_ID.getName(), TableField.PAGES_READ.getName(), TableField.BOOK_ID.getName(), TableField.ACTION.getName(),
