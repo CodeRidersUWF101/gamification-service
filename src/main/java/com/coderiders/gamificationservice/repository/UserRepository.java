@@ -1,5 +1,6 @@
 package com.coderiders.gamificationservice.repository;
 
+import com.coderiders.commonutils.models.LatestAchievement;
 import com.coderiders.commonutils.models.UserChallengesExtraDTO;
 import com.coderiders.commonutils.models.enums.ActivityAction;
 import com.coderiders.commonutils.models.enums.BadgeType;
@@ -166,6 +167,18 @@ public class UserRepository {
         params.addValue(QueryParam.FIRST.getName(), clerkId);
         params.addValue(QueryParam.SECOND.getName(), challengeId);
         jdbcTemplate.update(Queries.saveUserChallenge, params);
+    }
+
+    public List<LatestAchievement> getLatestUserAchievements(String clerkId) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue(QueryParam.FIRST.getName(), clerkId);
+        return jdbcTemplate.query(Queries.getLatestAchievements, params, (rs, rowNum) ->
+                new LatestAchievement(
+                        rs.getString("name"),
+                        rs.getString("elementtype"),
+                        rs.getString("description"),
+                        rs.getInt("threshold"),
+                        Utils.convertToLocalDateTime(rs.getTimestamp("date"))));
     }
 
 

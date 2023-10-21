@@ -1,9 +1,6 @@
 package com.coderiders.gamificationservice.controller;
 
-import com.coderiders.commonutils.models.AddItem;
-import com.coderiders.commonutils.models.ReadingChallenges;
-import com.coderiders.commonutils.models.Status;
-import com.coderiders.commonutils.models.UserChallengesExtraDTO;
+import com.coderiders.commonutils.models.*;
 import com.coderiders.commonutils.models.enums.ActivityAction;
 import com.coderiders.commonutils.models.enums.ChallengeFrequency;
 import com.coderiders.commonutils.models.records.Badge;
@@ -114,6 +111,17 @@ public class GamificationServiceController {
         }
 
         return new ResponseEntity<>(userService.getUserChallenges(clerkId), HttpStatus.OK);
+    }
+
+    @GetMapping("/achievements/{clerkId}")
+    public ResponseEntity<List<LatestAchievement>> getLatestUserAchievements(@PathVariable String clerkId) {
+        printColored("/achievements/{clerkId} GET ENDPOINT HIT", ConsoleFormatter.Color.PURPLE);
+
+        if (clerkId == null) {
+            throw new BadRequestException("No Provided Clerk Id");
+        }
+
+        return new ResponseEntity<>(userService.getLatestUserAchievements(clerkId), HttpStatus.OK);
     }
 
     @PostMapping("/activity")

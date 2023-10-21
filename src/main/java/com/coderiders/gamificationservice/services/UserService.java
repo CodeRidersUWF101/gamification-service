@@ -1,6 +1,7 @@
 package com.coderiders.gamificationservice.services;
 
 import com.coderiders.commonutils.models.AddItem;
+import com.coderiders.commonutils.models.LatestAchievement;
 import com.coderiders.commonutils.models.Status;
 import com.coderiders.commonutils.models.UserChallengesExtraDTO;
 import com.coderiders.commonutils.models.records.UserBadge;
@@ -16,4 +17,5 @@ public interface UserService {
     List<UserChallengesExtraDTO> getUserChallenges(String clerkId);
     Map<String, List<UserBadge>> getUserBadges(String clerkId);
     AddItem addItemToActivity(AddItem addItem);
+    List<LatestAchievement> getLatestUserAchievements(String clerkId);
 }
