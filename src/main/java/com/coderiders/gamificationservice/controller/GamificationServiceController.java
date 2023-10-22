@@ -39,7 +39,7 @@ public class GamificationServiceController {
     }
 
     @GetMapping("/points/{clerkId}")
-    public ResponseEntity<Integer> helloGamification(@PathVariable String clerkId) {
+    public ResponseEntity<Integer> getPoints(@PathVariable String clerkId) {
         return new ResponseEntity<>(userRepository.getUserPoints(clerkId), HttpStatus.OK);
     }
 
