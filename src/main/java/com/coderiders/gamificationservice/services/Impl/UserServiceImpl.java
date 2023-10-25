@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -86,7 +87,8 @@ public class UserServiceImpl implements UserService {
         List<ReadingLogs> logs = getUserReadingLogs(clerkId);
         List<UserChallengesDTO> userChallenges = userRepository.getUserChallenges(clerkId);
 
-        Map<Long, UserChallengesExtraDTO> updatedChallengesMap = determineUserChallenges(userChallenges, logs).stream()
+        Map<Long, UserChallengesExtraDTO> updatedChallengesMap = determineUserChallenges(userChallenges, logs)
+                .stream()
                 .filter(item -> ActivityAction.STARTED_CHALLENGE.getName().equalsIgnoreCase(item.getStatus()))
                 .collect(Collectors.toMap(UserChallengesExtraDTO::getId, Function.identity()));
 
@@ -239,12 +241,12 @@ public class UserServiceImpl implements UserService {
 
             // if startDate or EndDate is null, it's a permanent event and needs to be determined by user.
             if (challenge.getChallengeStartDate() == null || challenge.getChallengeEndDate() == null) {
-                LocalDate userChallengeStartDate = challenge.getUserChallengeStartDate().toLocalDate();
-                LocalDate userEndDate = userChallengeStartDate.plusDays(challenge.getDuration() - 1);
+                LocalDateTime userChallengeStartDate = challenge.getUserChallengeStartDate();
+                LocalDateTime userEndDate = userChallengeStartDate.plusDays(challenge.getDuration() - 1);
 
                 Predicate<ReadingLogs> filteredLogsToProperRange = log ->
-                        (log.getDate().isAfter(userChallengeStartDate.atStartOfDay()) || log.getDate().isEqual(userChallengeStartDate.atStartOfDay()))
-                        && (log.getDate().isBefore(userEndDate.plusDays(1).atStartOfDay()) || log.getDate().isEqual(userEndDate.atStartOfDay()));
+                        (log.getDate().isAfter(userChallengeStartDate) || log.getDate().isEqual(userChallengeStartDate))
+                        && (log.getDate().isBefore(userEndDate.plusDays(1)) || log.getDate().isEqual(userEndDate));
 
                 Stream<ReadingLogs> filteredLogs = logs.stream().filter(filteredLogsToProperRange);
 
@@ -256,7 +258,7 @@ public class UserServiceImpl implements UserService {
                 };
 
                 if (updatedChallenge != null) {
-                    updatedChallenge.setUserChallengeEndDate(String.valueOf(userEndDate.atTime(23, 59, 59)));
+                    updatedChallenge.setUserChallengeEndDate(String.valueOf(userEndDate));
                     returnChallenges.add(updatedChallenge);
                 }
 
