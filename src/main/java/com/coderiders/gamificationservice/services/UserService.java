@@ -1,9 +1,6 @@
 package com.coderiders.gamificationservice.services;
 
-import com.coderiders.commonutils.models.AddItem;
-import com.coderiders.commonutils.models.LatestAchievement;
-import com.coderiders.commonutils.models.Status;
-import com.coderiders.commonutils.models.UserChallengesExtraDTO;
+import com.coderiders.commonutils.models.*;
 import com.coderiders.commonutils.models.records.UserBadge;
 import com.coderiders.commonutils.models.requests.UpdateProgress;
 import com.coderiders.gamificationservice.models.db.ReadingLogs;
@@ -18,4 +15,6 @@ public interface UserService {
     Map<String, List<UserBadge>> getUserBadges(String clerkId);
     AddItem addItemToActivity(AddItem addItem);
     List<LatestAchievement> getLatestUserAchievements(String clerkId);
+    SingleBookStats getSingleBookStats(String bookId, String clerkId);
+    List<GamificationLeaderboard> getLeaderboard();
 }

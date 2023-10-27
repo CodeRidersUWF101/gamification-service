@@ -1,5 +1,7 @@
 package com.coderiders.gamificationservice.repository;
 
+import com.coderiders.commonutils.models.BookStats;
+import com.coderiders.commonutils.models.GamificationLeaderboard;
 import com.coderiders.commonutils.models.LatestAchievement;
 import com.coderiders.commonutils.models.UserChallengesExtraDTO;
 import com.coderiders.commonutils.models.enums.ActivityAction;
@@ -179,6 +181,21 @@ public class UserRepository {
                         rs.getString("description"),
                         rs.getInt("threshold"),
                         Utils.convertToLocalDateTime(rs.getTimestamp("date"))));
+    }
+
+    public List<BookStats> getSingleBookStats(String clerkId, String bookId) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue(QueryParam.FIRST.getName(), clerkId);
+        params.addValue(QueryParam.SECOND.getName(), bookId);
+        return jdbcTemplate.query(Queries.getSinglePageStats, params, (rs, rowNum) ->
+                new BookStats(
+                        rs.getInt("pages_read"),
+                        Utils.convertToLocalDateTime(rs.getTimestamp("date"))));
+    }
+
+    public List<GamificationLeaderboard> getLeaderboard() {
+        return jdbcTemplate.query(Queries.getLeaderboard, (rs, rowNum) ->
+                new GamificationLeaderboard(rs.getString("clerk_id"), rs.getInt("TotalPoints")));
     }
 
 
