@@ -103,6 +103,20 @@ public class Queries {
             LIMIT 3;
             """;
 
+    public static final String getSinglePageStats = """
+            SELECT rl.pages_read, rl.date
+            FROM readinglogs rl
+            WHERE clerk_id = :first
+            AND book_id = :second
+            """;
+
+    public static final String getLeaderboard = """
+            SELECT clerk_id, TotalPoints
+            FROM UserTotalPoints
+            ORDER BY TotalPoints DESC
+            LIMIT 10;
+            """;
+
     public static final String savePages = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (:%s, :%s, :%s, :%s)",
                 TableNames.READING_LOGS.getName(),
                 TableField.CLERK_ID.getName(), TableField.PAGES_READ.getName(), TableField.BOOK_ID.getName(), TableField.ACTION.getName(),

@@ -1,9 +1,6 @@
 package com.coderiders.gamificationservice.services.Impl;
 
-import com.coderiders.commonutils.models.AddItem;
-import com.coderiders.commonutils.models.LatestAchievement;
-import com.coderiders.commonutils.models.Status;
-import com.coderiders.commonutils.models.UserChallengesExtraDTO;
+import com.coderiders.commonutils.models.*;
 import com.coderiders.commonutils.models.enums.ActivityAction;
 import com.coderiders.commonutils.models.enums.BadgeType;
 import com.coderiders.commonutils.models.records.*;
@@ -131,6 +128,42 @@ public class UserServiceImpl implements UserService {
         return userRepository.getLatestUserAchievements(clerkId);
     }
 
+    @Override
+    public SingleBookStats getSingleBookStats(String bookId, String clerkId) {
+        List<BookStats> bookStats = userRepository.getSingleBookStats(clerkId, bookId);
+
+        Map<LocalDate, Integer> aggregatedStats = bookStats.stream()
+                .collect(Collectors.groupingBy(
+                        stat -> stat.getDateRead().toLocalDate(),
+                        Collectors.summingInt(BookStats::getPagesRead)
+                ));
+
+        List<BookStats> aggregatedBookStats = new ArrayList<>();
+        for (Map.Entry<LocalDate, Integer> entry : aggregatedStats.entrySet()) {
+            BookStats stat = new BookStats();
+            stat.setDateRead(entry.getKey().atStartOfDay());
+            stat.setPagesRead(entry.getValue());
+            aggregatedBookStats.add(stat);
+        }
+        long numOfDays = aggregatedStats.keySet().size();
+
+        Status status = new Status();
+        if (numOfDays < 3) {
+            status.setStatusCode(Constants.MORE_DAYS_CODE);
+            status.setStatusDescription(Constants.MORE_DAYS_DESC);
+        } else {
+            status.setStatusCode(Constants.SUCCESS);
+            status.setStatusDescription(Constants.SUCCESS_DESC);
+        }
+
+        return new SingleBookStats(aggregatedBookStats, status);
+    }
+
+    @Override
+    public List<GamificationLeaderboard> getLeaderboard() {
+        return userRepository.getLeaderboard();
+    }
+
     private Map<String, List<UserBadge>> determineBadgeProgress(Map<String, List<UserBadge>> badges, UserStatistics stats) {
         for (Map.Entry<String, List<UserBadge>> entry : badges.entrySet()) {
             String key = entry.getKey();
@@ -230,7 +263,7 @@ public class UserServiceImpl implements UserService {
     private Status prepareReturnStatus(List<Badge> badgesEarned, List<UserChallengesExtraDTO> challengedCompleted) {
         List<BadgeWithNext> returnBadges = badgesEarned.stream().map(this::badgeToWithNext).toList();
 
-        return new Status(Constants.SUCCESS, Constants.SUCCESS_DESCRIPTION, null, returnBadges, challengedCompleted);
+        return new Status(Constants.SUCCESS, Constants.SUCCESS_DESC, null, returnBadges, challengedCompleted);
     }
 
     // TODO: Find a better way to do this.

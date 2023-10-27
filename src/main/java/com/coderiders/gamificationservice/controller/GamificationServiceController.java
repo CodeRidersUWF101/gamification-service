@@ -143,5 +143,26 @@ public class GamificationServiceController {
         return new ResponseEntity<>(userService.addItemToActivity(itemToAdd), HttpStatus.OK);
     }
 
+    @GetMapping("/stats/singlebook")
+    public ResponseEntity<SingleBookStats> getSingleBookStats(
+            @RequestParam(name = "book_id") String bookId,
+            @RequestParam(name = "clerk_id") String clerkId) {
 
+        printColored("/stats/singlebook GET ENDPOINT HIT: " + bookId, ConsoleFormatter.Color.PURPLE);
+
+        if (bookId == null) {
+            throw new BadRequestException("No Provided Book Id");
+        }
+
+        if (clerkId == null) {
+            throw new BadRequestException("No Provided Clerk Id");
+        }
+
+        return new ResponseEntity<>(userService.getSingleBookStats(bookId, clerkId), HttpStatus.OK);
+    }
+
+    @GetMapping("/leaderboard")
+    public ResponseEntity<List<GamificationLeaderboard>> getLeaderboard() {
+        return new ResponseEntity<>(userService.getLeaderboard(), HttpStatus.OK);
+    }
 }
