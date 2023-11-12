@@ -1,13 +1,13 @@
 package com.coderiders.gamificationservice.controller;
 
-import com.coderiders.commonutils.models.*;
-import com.coderiders.commonutils.models.enums.ActivityAction;
-import com.coderiders.commonutils.models.enums.ChallengeFrequency;
-import com.coderiders.commonutils.models.records.Badge;
-import com.coderiders.commonutils.models.records.UserBadge;
-import com.coderiders.commonutils.models.requests.UpdateProgress;
-import com.coderiders.commonutils.utils.ConsoleFormatter;
 import com.coderiders.gamificationservice.exception.BadRequestException;
+import com.coderiders.gamificationservice.models.commonutils.models.*;
+import com.coderiders.gamificationservice.models.commonutils.models.enums.ActivityAction;
+import com.coderiders.gamificationservice.models.commonutils.models.enums.ChallengeFrequency;
+import com.coderiders.gamificationservice.models.commonutils.models.records.Badge;
+import com.coderiders.gamificationservice.models.commonutils.models.records.UserBadge;
+import com.coderiders.gamificationservice.models.commonutils.models.requests.UpdateProgress;
+import com.coderiders.gamificationservice.models.commonutils.utils.ConsoleFormatter;
 import com.coderiders.gamificationservice.models.requests.SaveChallenge;
 import com.coderiders.gamificationservice.repository.UserRepository;
 import com.coderiders.gamificationservice.services.AdminStore;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-import static com.coderiders.commonutils.utils.ConsoleFormatter.printColored;
+import static com.coderiders.gamificationservice.models.commonutils.utils.ConsoleFormatter.printColored;
 
 @RestController
 @RefreshScope

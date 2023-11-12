@@ -1,6 +1,6 @@
 package com.coderiders.gamificationservice.models.dto;
 
-import com.coderiders.commonutils.models.enums.BadgeType;
+import com.coderiders.gamificationservice.models.commonutils.models.enums.BadgeType;
 
 
 public record TiersThresholdsDTO (

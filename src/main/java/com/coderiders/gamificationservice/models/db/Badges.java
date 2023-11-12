@@ -1,6 +1,6 @@
 package com.coderiders.gamificationservice.models.db;
 
-import com.coderiders.commonutils.models.enums.BadgeType;
+import com.coderiders.gamificationservice.models.commonutils.models.enums.BadgeType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

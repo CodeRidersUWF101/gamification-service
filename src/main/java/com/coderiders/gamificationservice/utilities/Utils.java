@@ -1,10 +1,10 @@
 package com.coderiders.gamificationservice.utilities;
 
-import com.coderiders.commonutils.models.ReadingChallenges;
-import com.coderiders.commonutils.models.UserChallengesExtraDTO;
-import com.coderiders.commonutils.models.enums.ActivityAction;
-import com.coderiders.commonutils.models.records.Badge;
-import com.coderiders.commonutils.models.records.UserChallengesDTO;
+import com.coderiders.gamificationservice.models.commonutils.models.ReadingChallenges;
+import com.coderiders.gamificationservice.models.commonutils.models.UserChallengesExtraDTO;
+import com.coderiders.gamificationservice.models.commonutils.models.enums.ActivityAction;
+import com.coderiders.gamificationservice.models.commonutils.models.records.Badge;
+import com.coderiders.gamificationservice.models.commonutils.models.records.UserChallengesDTO;
 import com.coderiders.gamificationservice.models.dto.UserActivityDTO;
 import com.coderiders.gamificationservice.models.dto.UserPointsDTO;
 import com.coderiders.gamificationservice.models.enums.ElementType;

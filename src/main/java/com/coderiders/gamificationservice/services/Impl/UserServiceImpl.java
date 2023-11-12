@@ -1,12 +1,12 @@
 package com.coderiders.gamificationservice.services.Impl;
 
-import com.coderiders.commonutils.models.*;
-import com.coderiders.commonutils.models.enums.ActivityAction;
-import com.coderiders.commonutils.models.enums.BadgeType;
-import com.coderiders.commonutils.models.records.*;
-import com.coderiders.commonutils.models.requests.UpdateProgress;
-import com.coderiders.commonutils.utils.ConsoleFormatter;
 import com.coderiders.gamificationservice.models.UserStatistics;
+import com.coderiders.gamificationservice.models.commonutils.models.*;
+import com.coderiders.gamificationservice.models.commonutils.models.enums.ActivityAction;
+import com.coderiders.gamificationservice.models.commonutils.models.enums.BadgeType;
+import com.coderiders.gamificationservice.models.commonutils.models.records.*;
+import com.coderiders.gamificationservice.models.commonutils.models.requests.UpdateProgress;
+import com.coderiders.gamificationservice.models.commonutils.utils.ConsoleFormatter;
 import com.coderiders.gamificationservice.models.db.ReadingLogs;
 import com.coderiders.gamificationservice.repository.UserRepository;
 import com.coderiders.gamificationservice.services.AdminStore;
@@ -25,7 +25,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.coderiders.commonutils.utils.ConsoleFormatter.printColored;
+import static com.coderiders.gamificationservice.models.commonutils.utils.ConsoleFormatter.printColored;
 import static com.coderiders.gamificationservice.utilities.ReadingStreak.calculateReadingStreak;
 import static java.time.temporal.ChronoUnit.DAYS;
 

@@ -1,13 +1,13 @@
 package com.coderiders.gamificationservice.config;
 
-import com.coderiders.commonutils.utils.ConsoleFormatter;
+import com.coderiders.gamificationservice.models.commonutils.utils.ConsoleFormatter;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import static com.coderiders.commonutils.utils.ConsoleFormatter.printColored;
+import static com.coderiders.gamificationservice.models.commonutils.utils.ConsoleFormatter.printColored;
 
 
 @Aspect
