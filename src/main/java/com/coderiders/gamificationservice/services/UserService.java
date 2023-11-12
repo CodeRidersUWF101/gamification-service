@@ -1,8 +1,8 @@
 package com.coderiders.gamificationservice.services;
 
-import com.coderiders.commonutils.models.*;
-import com.coderiders.commonutils.models.records.UserBadge;
-import com.coderiders.commonutils.models.requests.UpdateProgress;
+import com.coderiders.gamificationservice.models.commonutils.models.*;
+import com.coderiders.gamificationservice.models.commonutils.models.records.UserBadge;
+import com.coderiders.gamificationservice.models.commonutils.models.requests.UpdateProgress;
 import com.coderiders.gamificationservice.models.db.ReadingLogs;
 
 import java.util.List;
