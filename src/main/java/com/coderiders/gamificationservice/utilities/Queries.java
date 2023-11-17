@@ -117,6 +117,13 @@ public class Queries {
             LIMIT 10;
             """;
 
+    public static final String findFriendPointsForLeaderboard = """
+            SELECT clerk_id, TotalPoints
+            FROM UserTotalPoints
+            WHERE clerk_id = :first
+            ORDER BY TotalPoints DESC;
+            """;
+
     public static final String savePages = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (:%s, :%s, :%s, :%s)",
                 TableNames.READING_LOGS.getName(),
                 TableField.CLERK_ID.getName(), TableField.PAGES_READ.getName(), TableField.BOOK_ID.getName(), TableField.ACTION.getName(),

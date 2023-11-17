@@ -13,6 +13,7 @@ import com.coderiders.gamificationservice.models.commonutils.models.records.User
 import com.coderiders.gamificationservice.models.commonutils.models.requests.UpdateProgress;
 import com.coderiders.gamificationservice.models.db.ReadingLogs;
 import com.coderiders.gamificationservice.models.dto.UserActivityDTO;
+import com.coderiders.gamificationservice.utilities.AdminQueries;
 import com.coderiders.gamificationservice.utilities.Queries;
 import com.coderiders.gamificationservice.utilities.QueryParam;
 import com.coderiders.gamificationservice.utilities.Utils;
@@ -197,6 +198,11 @@ public class UserRepository {
                 new GamificationLeaderboard(rs.getString("clerk_id"), rs.getInt("TotalPoints")));
     }
 
+    public List<GamificationLeaderboard> getLeaderboardFriends(String clerk_id) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("first", clerk_id);
+        return jdbcTemplate.query(Queries.findFriendPointsForLeaderboard, params, (rs, rowNum) ->
+                new GamificationLeaderboard(rs.getString("clerk_id"), rs.getInt("TotalPoints")));
 
-
+    }
 }
