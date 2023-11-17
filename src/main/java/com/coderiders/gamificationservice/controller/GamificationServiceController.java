@@ -166,8 +166,13 @@ public class GamificationServiceController {
         return new ResponseEntity<>(userService.getLeaderboard(), HttpStatus.OK);
     }
 
-    @GetMapping("/userPoints/")
-    public ResponseEntity<List<GamificationLeaderboard>> getUsersPoints(@RequestParam("clerk_id") String clerk_id) {
-        return new ResponseEntity<>(userService.getLeaderboardFriends(clerk_id), HttpStatus.OK);
+//    @GetMapping("/userPoints/")
+//    public ResponseEntity<List<GamificationLeaderboard>> getUsersPoints(@RequestParam("clerk_id") String clerk_id) {
+//        return new ResponseEntity<>(userService.getLeaderboardFriends(clerk_id), HttpStatus.OK);
+//    }
+
+    @GetMapping("/userPoints")
+    public ResponseEntity<List<GamificationLeaderboard>> getUsersPoints(@RequestBody List<UtilsUser> userToSearch) {
+        return new ResponseEntity<>(userService.getLeaderboardFriends(userToSearch), HttpStatus.OK);
     }
 }

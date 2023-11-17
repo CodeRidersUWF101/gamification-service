@@ -167,7 +167,9 @@ public class UserServiceImpl implements UserService {
         return userRepository.getLeaderboard();
     }
 
-    public List<GamificationLeaderboard> getLeaderboardFriends(String clerk_id) { return userRepository.getLeaderboardFriends(clerk_id); }
+//    public List<GamificationLeaderboard> getLeaderboardFriends(String clerk_id) { return userRepository.getLeaderboardFriends(clerk_id); }
+
+    public List<GamificationLeaderboard> getLeaderboardFriends(List<UtilsUser> usersToSearch) { return userRepository.getLeaderboardFriends(usersToSearch); }
 
     private Map<String, List<UserBadge>> determineBadgeProgress(Map<String, List<UserBadge>> badges, UserStatistics stats) {
         for (Map.Entry<String, List<UserBadge>> entry : badges.entrySet()) {

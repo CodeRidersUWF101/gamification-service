@@ -1,9 +1,6 @@
 package com.coderiders.gamificationservice.repository;
 import com.coderiders.gamificationservice.models.UserStatistics;
-import com.coderiders.gamificationservice.models.commonutils.models.BookStats;
-import com.coderiders.gamificationservice.models.commonutils.models.GamificationLeaderboard;
-import com.coderiders.gamificationservice.models.commonutils.models.LatestAchievement;
-import com.coderiders.gamificationservice.models.commonutils.models.UserChallengesExtraDTO;
+import com.coderiders.gamificationservice.models.commonutils.models.*;
 import com.coderiders.gamificationservice.models.commonutils.models.enums.ActivityAction;
 import com.coderiders.gamificationservice.models.commonutils.models.enums.BadgeType;
 import com.coderiders.gamificationservice.models.commonutils.models.enums.ChallengeFrequency;
@@ -198,11 +195,28 @@ public class UserRepository {
                 new GamificationLeaderboard(rs.getString("clerk_id"), rs.getInt("TotalPoints")));
     }
 
-    public List<GamificationLeaderboard> getLeaderboardFriends(String clerk_id) {
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("first", clerk_id);
-        return jdbcTemplate.query(Queries.findFriendPointsForLeaderboard, params, (rs, rowNum) ->
-                new GamificationLeaderboard(rs.getString("clerk_id"), rs.getInt("TotalPoints")));
+//    public List<GamificationLeaderboard> getLeaderboardFriends(String clerk_id) {
+//        MapSqlParameterSource params = new MapSqlParameterSource();
+//        params.addValue("first", clerk_id);
+//        return jdbcTemplate.query(Queries.findFriendPointsForLeaderboard, params, (rs, rowNum) ->
+//                new GamificationLeaderboard(rs.getString("clerk_id"), rs.getInt("TotalPoints")));
+//
+//    }
+
+    public List<GamificationLeaderboard> getLeaderboardFriends(List<UtilsUser> usersToSearch) {
+
+        List<GamificationLeaderboard> gl = new ArrayList<GamificationLeaderboard>();
+
+        for (UtilsUser userToLookUp: usersToSearch) {
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("first", userToLookUp.getClerkId());
+            GamificationLeaderboard friendLeaderboard = new GamificationLeaderboard();
+            friendLeaderboard = jdbcTemplate.queryForObject(Queries.findFriendPointsForLeaderboard, params, (rs, rowNum) ->
+                    new GamificationLeaderboard(rs.getString("clerk_id"), rs.getInt("TotalPoints")));
+            gl.add(friendLeaderboard);
+        }
+
+        return gl;
 
     }
 }
