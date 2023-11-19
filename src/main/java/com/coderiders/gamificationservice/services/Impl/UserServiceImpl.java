@@ -11,10 +11,13 @@ import com.coderiders.gamificationservice.models.db.ReadingLogs;
 import com.coderiders.gamificationservice.repository.UserRepository;
 import com.coderiders.gamificationservice.services.AdminStore;
 import com.coderiders.gamificationservice.services.UserService;
+import com.coderiders.gamificationservice.utilities.AdminQueries;
 import com.coderiders.gamificationservice.utilities.Constants;
 import com.coderiders.gamificationservice.utilities.ReadingStreak;
 import com.coderiders.gamificationservice.utilities.Utils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -163,6 +166,8 @@ public class UserServiceImpl implements UserService {
     public List<GamificationLeaderboard> getLeaderboard() {
         return userRepository.getLeaderboard();
     }
+
+    public List<GamificationLeaderboard> getLeaderboardFriends(List<UtilsUser> usersToSearch) { return userRepository.getLeaderboardFriends(usersToSearch); }
 
     private Map<String, List<UserBadge>> determineBadgeProgress(Map<String, List<UserBadge>> badges, UserStatistics stats) {
         for (Map.Entry<String, List<UserBadge>> entry : badges.entrySet()) {

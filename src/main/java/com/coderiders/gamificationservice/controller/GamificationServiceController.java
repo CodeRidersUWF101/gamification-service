@@ -165,4 +165,9 @@ public class GamificationServiceController {
     public ResponseEntity<List<GamificationLeaderboard>> getLeaderboard() {
         return new ResponseEntity<>(userService.getLeaderboard(), HttpStatus.OK);
     }
+
+    @PostMapping("/userPoints")
+    public ResponseEntity<List<GamificationLeaderboard>> getUsersPoints(@RequestBody List<UtilsUser> userToSearch) {
+        return new ResponseEntity<>(userService.getLeaderboardFriends(userToSearch), HttpStatus.OK);
+    }
 }

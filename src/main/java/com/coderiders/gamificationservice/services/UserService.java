@@ -17,4 +17,5 @@ public interface UserService {
     List<LatestAchievement> getLatestUserAchievements(String clerkId);
     SingleBookStats getSingleBookStats(String bookId, String clerkId);
     List<GamificationLeaderboard> getLeaderboard();
+    public List<GamificationLeaderboard> getLeaderboardFriends(List<UtilsUser> usersToSearch);
 }
