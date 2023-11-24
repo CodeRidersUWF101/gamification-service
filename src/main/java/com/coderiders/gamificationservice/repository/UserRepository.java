@@ -22,8 +22,9 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 
 
 @Repository
@@ -204,19 +205,31 @@ public class UserRepository {
 //    }
 
     public List<GamificationLeaderboard> getLeaderboardFriends(List<UtilsUser> usersToSearch) {
+        List<String> clerkIds = usersToSearch.stream()
+                .map(UtilsUser::getClerkId)
+                .toList();
 
-        List<GamificationLeaderboard> gl = new ArrayList<GamificationLeaderboard>();
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userIds", clerkIds);
 
-        for (UtilsUser userToLookUp: usersToSearch) {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("first", userToLookUp.getClerkId());
-            GamificationLeaderboard friendLeaderboard = new GamificationLeaderboard();
-            friendLeaderboard = jdbcTemplate.queryForObject(Queries.findFriendPointsForLeaderboard, params, (rs, rowNum) ->
-                    new GamificationLeaderboard(rs.getString("clerk_id"), rs.getInt("TotalPoints")));
-            gl.add(friendLeaderboard);
+        Map<String, Integer> results = jdbcTemplate.query(
+                Queries.findFriendPointsForLeaderboard,
+                params,
+                rs -> {
+                    Map<String, Integer> map = new HashMap<>();
+                    while (rs.next()) {
+                        map.put(rs.getString("clerk_id"), rs.getInt("TotalPoints"));
+                    }
+                    return map;
+                });
+
+        List<GamificationLeaderboard> leaderboard = new ArrayList<>();
+        for (UtilsUser user : usersToSearch) {
+            Integer points = results.getOrDefault(user.getClerkId(), 0);
+            leaderboard.add(new GamificationLeaderboard(user.getClerkId(), points));
         }
-
-        return gl;
-
+        return leaderboard;
     }
+
+
 }

@@ -118,11 +118,11 @@ public class Queries {
             """;
 
     public static final String findFriendPointsForLeaderboard = """
-            SELECT clerk_id, TotalPoints
-            FROM UserTotalPoints
-            WHERE clerk_id = :first
-            ORDER BY TotalPoints DESC;
-            """;
+        SELECT clerk_id, TotalPoints
+        FROM UserTotalPoints
+        WHERE clerk_id IN (:userIds)
+        ORDER BY TotalPoints DESC;
+        """;
 
     public static final String savePages = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (:%s, :%s, :%s, :%s)",
                 TableNames.READING_LOGS.getName(),
