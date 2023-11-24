@@ -1,17 +1,71 @@
 server:
   port: ${PORT}
 
+#spring:
+#  application:
+#    name: ${CONFIG_APPLICATION_NAME}
+#  profiles:
+#    active: ${PROFILE}
+#  cloud:
+#    config:
+#      label: main
+#      username: ${SecurityUserName}
+#      password: ${SecurityPassword}
+#  config:
+#    import: optional:configserver:${ConfigServerURI}
+#encrypt:
+#  key: ${EncryptKey}
+
+
 spring:
-  application:
-    name: ${CONFIG_APPLICATION_NAME}
-  profiles:
-    active: ${PROFILE}
-  cloud:
-    config:
-      label: main
-      username: ${SecurityUserName}
-      password: ${SecurityPassword}
-  config:
-    import: optional:configserver:${ConfigServerURI}
-encrypt:
-  key: ${EncryptKey}
+  datasource:
+    url: jdbc:postgresql://GamificationDB:5432/gamificationdb
+    username: user_gamification
+    password: password_gamification
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh
+
+
+serviceUrls:
+  bookSearch: "http://localhost:8001"
+  recommendation: "http://localhost:8002"
+  aggregate: "http://localhost:8003"
+  gamification: "http://localhost:8004"
+  user: "http://localhost:8005"
+  client: "http://localhost:8006"
+
+endpoints:
+  booksearch:
+    base: "/book"
+    search: "/book/search" #/search?query=params&here=true
+  gamification:
+    base: "/"
+    login: "/login"
+    saveChallenge: "/gamification/challenge"
+    badges: "/gamification/badges"
+  user:
+    base: "/users/"
+    login: "/users/login" #/login/:clerkId
+    library: "/users/library"
+    friends: "/users/friends"
+    booksave: "/users/books"
+    signup: "/users/signup"
+  recommendation:
+    base: "/"
+    recommend: "/recommend"
+
+urls:
+  googlebooks: "https://www.googleapis.com/"

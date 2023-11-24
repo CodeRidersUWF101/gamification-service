@@ -13,7 +13,6 @@ import com.coderiders.gamificationservice.repository.UserRepository;
 import com.coderiders.gamificationservice.services.AdminStore;
 import com.coderiders.gamificationservice.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +23,6 @@ import java.util.Map;
 import static com.coderiders.gamificationservice.models.commonutils.utils.ConsoleFormatter.printColored;
 
 @RestController
-@RefreshScope
 @RequestMapping("/gamification")
 @RequiredArgsConstructor
 public class GamificationServiceController {
